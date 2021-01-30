@@ -1,0 +1,44 @@
+# Duplicate of Guangdong/20SF012/2020 / EPI_ISL_403932
+HKU-SZ-002a_2020
+
+# Duplicates of USA/WA1/2020
+USA/WA1-F6/2020
+USA/WA1-A12/2020
+
+# Duplicates of Wuhan/IVDC-HB-envF13/2020
+Wuhan/IVDC-HB-envF13-20/2020
+Wuhan/IVDC-HB-envF13-21/2020
+env/Wuhan/IVDC-HBF13-20/2020
+env/Wuhan/IVDC-HBF13-21/2020
+
+# Duplicates of Italy/INMI1-cs/2020
+Italy/INMI1/2020
+Italy/INMI1-isl/2020
+
+# Duplicates of France/IDF0372/2020, France/IDF0515/2020 and France/IDF0386-islP1/2020
+France/IDF0372-isl/2020
+France/IDF0515-isl/2020
+France/IDF0386-islP3/2020
+
+# Appears to be a duplicate of France/IDF0515/2020 47F taken 3 days later on Feb 2
+France/IDF0571/2020
+
+# Presumed early submission of the now-included Shenzhen/HKU-SZ-005/2020. Formerly a lack of precise date lead to an incorrect time placement (end of Jan)
+HKU-SZ-005b_2020
+
+# UPHL-05 and -06 are same patient - exclude -06
+USA/UPHL-06/2020
+
+# UPHL-03 and -04 are same patient - exclude -04
+USA/UPHL-04/2020
+
+# Portugal/PT0006a/2020 and Portugal/PT0006b/2020 seem to be same patient sampled 2 days apart?
+# Exclude one (neither making it to build right now, but in case in future)
+Portugal/PT0006b/2020
+
+# environment
+hCoV-19/Shandong/LY-H13/2020
+hCoV-19/Shandong/LY-H15/2020
+
+# Presumed early submission of the now-included Shenzhen/HKU-SZ-005/2020. Formerly a lack of precise date lead to an incorrect time placement (end of Jan)
+HKU-SZ-005b_2020
