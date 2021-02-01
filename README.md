@@ -128,4 +128,9 @@ One exception is `scripts/history_simulation/posterior_predictive_teststatistics
 
 ## <a name="program"></a>Program
 We included an executable `BEAST` program compiled from the `BEAST` source code we modified, which extends the machinery (that was designed for the constant model) to work for the piecewise constant model (including both phylogenetic likelihood computation and stochastic mapping).
-Our modification of the source code was based on [the `master` branch, commit `c0e5f8d3a`](https://github.com/beast-dev/beast-mcmc/commit/c0e5f8d3af1f943bed5754d8e6466aab4eb776f4); the modified source code (from which the executable that we used in our analyses in this study was compiled) can be found as [the `epochal_model_extension` branch, commit `49e476e41` of this forked `BEAST` source code repository](https://github.com/jsigao/beast-mcmc/commit/49e476e4198d6328933d3d8fcaf3923374eaf5e2).
+Our modification of the source code was based on [the `master` branch, commit `c0e5f8d3a`](https://github.com/beast-dev/beast-mcmc/commit/c0e5f8d3af1f943bed5754d8e6466aab4eb776f4); the modified source code (from which the executable that we used in our analyses in this study was compiled) can be found as [the `epochal_model_extension` branch, commit `49e476e41`](https://github.com/jsigao/beast-mcmc/commit/49e476e4198d6328933d3d8fcaf3923374eaf5e2) of a forked `BEAST` source code repository.
+As a quick example, this executable can be run by invoking:
+```
+java -jar beast.jar -working ./analyses/parameter_estimation/interval_specific/092220_030820/4interval_exphyper_asymmetric_poissonintermediate_orf1restcp_posterior_run1.xml
+```
+See [`BEAST` official tutorial website](http://beast.community/index.html) for further details about running `BEAST` analyses using a `Java` executable.
