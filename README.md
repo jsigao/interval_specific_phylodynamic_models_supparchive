@@ -25,8 +25,8 @@ Three types of travel data were used in this study, including:
 
 #### <a name="global_flights_data"></a>Global air-travel-volume data
 `data/travel_data/global_flights/nflights_daily_byaircraft.csv` is the global air-travel-volume-data report acquired from FlightAware, containing the number of all commercial passenger flights (broken down into the number of each aircraft type) per day ranging from December 30 2019 to March 8 2020.
-`data/travel_data/global_flights/aircraft_nseats.csv` contains the information (we manually collected) about the the number of seats availale on each type of aircraft.
-Estimate of the daily number of air passengers (assuming full capacity on each aircraft) can be obtained by summing up the product of the number of flights per day under each aircraft type and the correponding number of seats of each aircraft type.
+`data/travel_data/global_flights/aircraft_nseats.csv` contains the information (we manually collected) about the the number of seats available on each type of aircraft.
+Estimate of the daily number of air passengers (assuming full capacity on each aircraft) can be obtained by summing up the product of the number of flights per day under each aircraft type and the corresponding number of seats of each aircraft type.
 
 #### <a name="china_domestic_data"></a>China domestic travel-volume data
 `data/travel_data/china_domestic/baidu_mobility_index.csv` contains the daily domestic mobility index of China (ranging from January 1 to March 8, 2020), acquired from [the Baidu Migration platform](https://qianxi.baidu.com/2020); this dataset is derived from Baidu location-based services.
@@ -36,7 +36,7 @@ We extracted the daily domestic mobility indices of the US from two publicly ava
 `data/travel_data/us_domestic/apple_mobility_indices.csv` contains three types of mobility indices (walking, driving, and transit) provided by Apple, which were produced based on the direction requests in Apple Maps.
 Each mobility index of each day is a relative volume of directions requested made on that day compared to the corresponding baseline volume on January 13 2020 (so these indices are only available after that date).
 `data/travel_data/us_domestic/google_mobility_indices.csv` contains mobility index for each of six types of places (transit, retail and recreation, groceries and pharmacy, parks, workplaces, and residential), derived from Google location-based services.
-These mobility indices are also relative values where the mobility index of each day is computed as ratio of the number of visits on that day over the baseline value, which is the median value (of the correponding day of week) during January 3--February 6, 2020 (so these indices are only available after February 6).
+These mobility indices are also relative values where the mobility index of each day is computed as ratio of the number of visits on that day over the baseline value, which is the median value (of the corresponding day of week) during January 3--February 6, 2020 (so these indices are only available after February 6).
 
 ### <a name="measure_data"></a>Measure Data
 We focussed on two types of containment measures involving China enacted during the early phase of COVID-19 pandemic in this study: international travel bans with China and the domestic containment measures within China.
@@ -50,7 +50,7 @@ It is further divided into three subdirectories, corresponding to the three type
 * the analyses that evaluated the fit of candidate biogeographic models to the data ([`analyses/model_exploration`](#model_exploration_analyses)), and
 * the analyses that estimated the geographic model parameters and dispersal history of SARS-CoV-2 ([`analyses/parameter_estimation`](#parameter_estimation_analyses)) under the preferred model identified by the model-evaluation analyses.
 
-All these analyses were performed using a Bayesian phylogenetic program, `BEAST` (the specific version varies among types of analyses; see details below), with the `BEAGLE` library (compiled from [the `hmc-clock` branch, commit `dd36bf5`](https://github.com/beagle-dev/beagle-lib/tree/dd36bf5b8d88348c77a93eeeef0917d90df71a4f)) enabled to accerlate computation (both CPU and GPU were used).
+All these analyses were performed using a Bayesian phylogenetic program, `BEAST` (the specific version varies among types of analyses; see details below), with the `BEAGLE` library (compiled from [the `hmc-clock` branch, commit `dd36bf5`](https://github.com/beagle-dev/beagle-lib/tree/dd36bf5b8d88348c77a93eeeef0917d90df71a4f)) enabled to accelerate computation (both CPU and GPU were used).
 The XML scripts provided here use `?` as placeholder for each sequence (as we are not allowed to publish the sequence data directly per the terms of use of GISAID); therefore to replicate the analyses, one needs to download the sequences from GISAID using the GISAID accession numbers provided in the [`data/sequence_data`](#sequence_data) subdirectory to, then run the `R` scripts provided in the [`scripts/sequence_data_curation`](#sequence_data_curation_scripts) subdirectory to generate the curated sequence alignments we used in this study, and lastly replace the `?`s with them to produce the exact XML scripts we used.
 
 ### <a name="dated_phylogeny_inference_analyses"></a>Estimating Dated Phylogeny from SARS-CoV-2 Genomes
@@ -60,7 +60,7 @@ These analyses used the reduced dataset.
 
 ### <a name="model_exploration_analyses"></a>Evaluating Candidate Biogeographic Models
 We performed rigorous Bayesian model-selection and model-checking analyses to identify the geographic model with the best fit to the data, which we used later to estimate geographic model parameters and dispersal history.
-These model-evaluation analyses were carried out in two steps: we first compared various geographic (prior)models under a constant dispersal process ([`analyses/model_exploration/constant`](#model_exploration_analyses_constant)); conditioning on the preferred (prior)model, we then compared the preferred constant models with piecewise-constant biogeographic models ([`analyses/model_exploration/piecewise_constant`](#model_exploration_analyses_piecewiseconstant)) where the dispersal dynamics may vary across time intervals.
+These model-evaluation analyses were carried out in two steps: we first compared various geographic (prior)models under a constant dispersal process ([`analyses/model_exploration/constant`](#model_exploration_analyses_constant)); conditioning on the preferred (prior)model, we then compared the constant models with piecewise-constant biogeographic models ([`analyses/model_exploration/piecewise_constant`](#model_exploration_analyses_piecewiseconstant)) where the dispersal dynamics may vary across time intervals.
 We did these analyses using the reduced dataset.
 To ensure numerical stability of the estimates, these geographic model-evaluation analyses were conditioned on the MCC tree inferred in the [previous step](#dated_phylogeny_inference_analyses).
 
@@ -81,7 +81,7 @@ Specifically, we evaluated a suite of biogeographic (prior)models, including all
 * default and alternative priors with asymmetric Q matrices (*i.e.*, the preferred prior models identified in the [previous section](#model_exploration_analyses_constant)).
 
 We estimated the marginal likelihood for each of the four candidate models to evaluate its relative fit to the data; the XML scripts can be found in subdirectory `analyses/model_exploration/piecewise_constant/marginal_likelihood`
-Subdirectory `analyses/model_exploration/piecewise_constant/posterior_predictive` contains the XML scripts for the analyses inferring the posteriors, which were then used to perform posterior-predictive simulations to assess the adequecy of each candidate model.
+Subdirectory `analyses/model_exploration/piecewise_constant/posterior_predictive` contains the XML scripts for the analyses inferring the posteriors, which were then used to perform posterior-predictive simulations to assess the adequacy of each candidate model.
 These analyses were performed using a modified version of `BEAST` (see the [program section](#program) below for details).
 
 ### <a name="parameter_estimation_analyses"></a>Estimating Geographic Model Parameters and Dispersal History
@@ -106,20 +106,20 @@ The `scripts` subdirectory contains the `R` scripts we used in this study; it is
 * the scripts that process the `BEAST` output files to produce summaries of geographic model parameters ([`scripts/parameter_summary`](#parameter_summary_scripts)).
 
 ### <a name="sequence_data_curation_scripts"></a>Sequence Data Curation
-The first step of sequence data curation is to fliter the raw sequences downloaded from GISAID those that undermine the analyses due to various reasons (*e.g.*, a sequence that is incomplete or lacks the associated sampling time or location information).
+The first step of sequence data curation is to filter the raw sequences downloaded from GISAID those that undermine the analyses due to various reasons (*e.g.*, a sequence that is incomplete or lacks the associated sampling time or location information).
 The specific procedures differ between the reduced dataset and the entire dataset slightly, since we downloaded unaligned sequences from GISAID to generate the reduced dataset, but sequence alignment to generate the entire dataset.
 We present both procedures here so that either way can be replicated.
-For the reduced dataset (when the initial input are raw sequences), `scripts/sequence_data_curation/sequence_preprocess_beforealign.R` is run first as a preliminary filteration of the sequences, and then (after the alignment is inferred using the output of the preliminary filteration), `scripts/sequence_data_curation/sequence_process_aftealign.R` is run to filter the inferred alignment again (as some filteration conditions assume that site homology has been established).
+For the reduced dataset (when the initial input are raw sequences), `scripts/sequence_data_curation/sequence_preprocess_beforealign.R` is run first as a preliminary filtration of the sequences, and then (after the alignment is inferred using the output of the preliminary filtration), `scripts/sequence_data_curation/sequence_process_aftealign.R` is run to filter the inferred alignment again (as some filtration conditions assume that site homology has been established).
 For the entire dataset (when the initial input is sequence alignment), `scripts/sequence_data_curation/sequence_process_gisaidalignment.R` is run to filter it in one installment.
-These scripts also trim the alignment after the filteration to generate nucleotide alignments that only keep the coding regions (as well as the translated amino-acid alignments).
+These scripts also trim the alignment after the filtration to generate nucleotide alignments that only keep the coding regions (as well as the translated amino-acid alignments).
 
 After the curation step is done, `scripts/sequence_data_curation/sequence_process_alignment_foranalysis.R` can be run to partition the entire alignment according to various partition schemes (*e.g.*, by codon positions and/or by gene regions), so that different substitution model among the partitions can be easily specified in the analyses.
 Lastly, `scripts/sequence_data_curation/discretetrait_writer.R` generates a data table containing the sampling age (in unit of days) and sampling geographic area (according to the area-grouping scheme defined in `scripts/sequence_data_curation/main_config.R`) information of each virus sample included in the processed sequence alignment.
 
 ### <a name="history_simulation_scripts"></a>History Simulations
 We simulated full dispersal history over the sampled dated phylogeny for two major purposes: inferring the posterior distribution of histories (through stochastic mapping) and assessing the adequacy of geographic models (through posterior-predictive simulation).
-`scripts/history_simulation/history_simulator_functions.R` is the interface script that a user can execute the `history_simulator` rountine within it to either perform stochastic mapping or posterior-predictive simulation (by setting the argument `conditional` to true or false).
-Other scripts in this subdirectory contains subroutines that will be evoked by the interface rountine.
+`scripts/history_simulation/history_simulator_functions.R` is the interface script that a user can execute the `history_simulator` routine within it to either perform stochastic mapping or posterior-predictive simulation (by setting the argument `conditional` to true or false).
+Other scripts in this subdirectory contains subroutines that will be evoked by the interface routine.
 One exception is `scripts/history_simulation/posterior_predictive_teststatistics_functions`, which provides functions to calculate posterior-predictive summary statistics (including the tipwise multinomial statistic and the parsimony statistic).
 
 ### <a name="parameter_summary_scripts"></a>Geographic Model Parameter Summary
