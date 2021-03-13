@@ -1,5 +1,5 @@
-# Supplementary Archive for Phylodynamic insights on the early spread of the COVID-19 pandemic and the efficacy of mitigation measures
-This archive contains the materials that are necessary and sufficient to replicate this study; it is divided into four subdirectories: [`data`](#data), [`analyses`](#analyses), [`scripts`](#scripts), and [`program`](#program), each described below.
+# Supplementary Archive for: Phylodynamic insights on the early spread of the COVID-19 pandemic and the efficacy of mitigation measures
+This archive contains the materials that are necessary and sufficient to reproduce this study; it is divided into four subdirectories: [`data`](#data) (containing the sequence data used in the phylodynamic analyses as well as the travel and measure data), [`analyses`](#analyses) (containing the `BEAST` phylodynamic analyses XML scripts), [`scripts`](#scripts) (containing the data-curation and analyses-postprocessing `R` scripts), and [`program`](#program) (containing a `BEAST` executable with our implemented extensions), each described in detail below.
 This archive is also available as an [Dryad repository](link here).
 
 ## <a name="data"></a>Data
@@ -51,7 +51,7 @@ It is further divided into three subdirectories, corresponding to the three type
 * the analyses that estimated the geographic model parameters and dispersal history of SARS-CoV-2 ([`analyses/parameter_estimation`](#parameter_estimation_analyses)) under the preferred model identified by the model-evaluation analyses.
 
 All these analyses were performed using a Bayesian phylogenetic program, `BEAST` (the specific version varies among types of analyses; see details below), with the `BEAGLE` library (compiled from [the `hmc-clock` branch, commit `dd36bf5`](https://github.com/beagle-dev/beagle-lib/tree/dd36bf5b8d88348c77a93eeeef0917d90df71a4f)) enabled to accelerate computation (both CPU and GPU were used).
-The XML scripts provided here use `?` as placeholder for each sequence (as we are not allowed to publish the sequence data directly per the terms of use of GISAID); therefore to replicate the analyses, one needs to download the sequences from GISAID using the GISAID accession numbers provided in the [`data/sequence_data`](#sequence_data) subdirectory to, then run the `R` scripts provided in the [`scripts/sequence_data_curation`](#sequence_data_curation_scripts) subdirectory to generate the curated sequence alignments we used in this study, and lastly replace the `?`s with them to produce the exact XML scripts we used.
+The XML scripts provided here use `?` as placeholder for each sequence (as we are not allowed to publish the sequence data directly per the terms of use of GISAID); therefore to reproduce the analyses, one needs to download the sequences from GISAID using the GISAID accession numbers provided in the [`data/sequence_data`](#sequence_data) subdirectory to, then run the `R` scripts provided in the [`scripts/sequence_data_curation`](#sequence_data_curation_scripts) subdirectory to generate the curated sequence alignments we used in this study, and lastly replace the `?`s with them to produce the exact XML scripts we used.
 
 ### <a name="dated_phylogeny_inference_analyses"></a>Estimating Dated Phylogeny from SARS-CoV-2 Genomes
 We inferred the dated phylogeny of the SARS-CoV-2 samples we curated by running `data/dated_phylogeny_inference/coalExp_ucln_posterior_run1.xml` with [`BEAST` version 1.10.5](https://github.com/beast-dev/beast-mcmc/releases/tag/v1.10.5pre1).
@@ -123,7 +123,7 @@ Other scripts in this subdirectory contains subroutines that will be evoked by t
 One exception is `scripts/history_simulation/posterior_predictive_teststatistics_functions`, which provides functions to calculate posterior-predictive summary statistics (including the tipwise multinomial statistic and the parsimony statistic).
 
 ### <a name="parameter_summary_scripts"></a>Geographic Model Parameter Summary
-`scripts/parameter_summary/get_BFs_counts.R` processes the `BEAST` parameter log file (and simulated history log file if available) to summarize the geographic model parameter estimates for both constant and piecewise constant model, including (interval-specific) pairwise dispersal routes, (interval-specific) global dispersal rate, and (interval-specific) number of dispersal events.
+`scripts/parameter_summary/get_BFs_counts.R` processes the `BEAST` parameter log file (and simulated history log file if available) to summarize the geographic model parameter estimates for both constant and piecewise constant model, including (interval-specific) pairwise dispersal routes, (interval-specific) global dispersal rate, and (interval-specific) number of pairwise dispersal events.
 `scripts/parameter_summary/get_daily_events_nlieanges.R` processes the `BEAST` simulated history log file (or the tree log file) to summarize the number of dispersal events occurred on each dispersal route (or the number of active viral lineages) in each arbitrarily specified time interval.
 
 ## <a name="program"></a>Program
