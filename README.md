@@ -14,9 +14,9 @@ Our study includes analyses of two SARS-CoV-2 genomic datasets: the *reduced dat
 The reduced dataset is based on all SARS-CoV-2 genomic sequences&mdash;collected during the early phase of the COVID-19 pandemic&mdash;that were deposited in [GISAID](https://www.gisaid.org) as of April 19 2020.
 The entire dataset is based on all SARS-CoV-2 sequences collected during the early phase of the COVID-19 pandemic that were deposited in GISAID as of September 22, 2020.
 
-GISAID policy prevents us from sharing the `FASTA` files for the SARS-CoV-2 genomic sequences comprising our reduced and entire datasets. Instead, we provide the corresponding GISAID accession numbers: those comprising the reduced dataset are listed in `data/sequence_data/gisaid_acknowledgement_table_041920_030820.tsv`, and sequences comprising the entire dataset are listed in `data/sequence_data/gisaid_acknowledgement_table_092220_030820.tsv`.
+GISAID policy prevents us from directly sharing the `FASTA` files for the SARS-CoV-2 genomic sequences used in our study. Instead, we provide the corresponding GISAID accession numbers of the SARS-CoV-2 sequences: those comprising the reduced dataset are listed in `data/sequence_data/gisaid_acknowledgement_table_041920_030820.tsv`, and sequences comprising the entire dataset are listed in `data/sequence_data/gisaid_acknowledgement_table_092220_030820.tsv`.
 The metadata for each sequence&mdash;including the sampling date and geographic location&mdash;are listed in `data/sequence_data/metainfo_041920.tsv` for the reduced dataset, and `data/sequence_data/metadata_092220.tsv` for the entire dataset.
-`data/sequence_data/exclude_seqs.tsv`. The accession numbers of sequences that we excluded during the data curation stage (on the basis that they are duplicate sequences) are listed in (https://github.com/nextstrain/ncov/blob/master/defaults/exclude.txt)(modified from [Nextstrain ncov exclude list].
+The accession numbers of sequences that we excluded during the data curation stage (on the basis that they are duplicate sequences) are listed in `data/sequence_data/exclude_seqs.tsv` (modified from [Nextstrain ncov exclude list(https://github.com/nextstrain/ncov/blob/master/defaults/exclude.txt)].
 
 ### <a name="travel_data"></a>Human-Travel Data
 Our study included three types of human-travel data, including:
