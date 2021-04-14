@@ -74,7 +74,7 @@ We also assessed the *absolute fit* of each candidate biogeographic model to our
 We estimated the posterior probability distribution for each candidate biogeographic model by performing MCMC simulation; these XML scrips are located in the subdirectory `analyses/step2_model_evaluation/constant/posterior_predictive`.
 
 Our evaluation of candidate biogeographic models conditioned on the MCC summary phylogeny inferred in [step 1](#step1_dated_phylogeny_inference_analyses).
-Our analyses under the time-constant biogeographic models were performed using [`BEAST` version 1.10.5](https://github.com/beast-dev/beast-mcmc/releases/tag/v1.10.5pre1), whereas our analyses under the piece-wise constant biogeographic models were performed using a modified version of `BEAST` (see the [program section](#program) for details).
+Our analyses under the time-constant biogeographic models were performed using [`BEAST` version 1.10.5](https://github.com/beast-dev/beast-mcmc/releases/tag/v1.10.5pre1), whereas those under the piece-wise constant biogeographic models were performed using a modified version of `BEAST` (see the [program section](#program) for details).
 
 ### <a name="step3_joint_analyses"></a>Step 3: Jointly inferring the phylogeny, divergence times and geographic history for the entire SARS-CoV-2 dataset
 We estimated the interval-specific dispersal dynamics under the 4-interval piecewise-constant alternative-prior asymmetric geographic model (the best model identified in the [previous section](#step2_model_evaluation_analyses)) jointly with the dated phylogeny to accommodate phylogenetic uncertainty using the entire dataset.
