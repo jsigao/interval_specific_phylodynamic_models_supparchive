@@ -56,28 +56,27 @@ We performed all analyses using the `BEAST` software package, although the speci
 Note that the XML scripts that we incude in this repository include `?` as placeholders for each sequence (because GISAID policy prohibits us from publishing the sequence data). In order to reproduce our analyses, it is necessary to: (1) first, download the sequences from GISAID using the GISAID accession numbers provided in the [`data/sequence_data`](#sequence_data) subdirectory; (2) then, run the `R` scripts provided in the [`scripts/sequence_data_curation`](#sequence_data_curation_scripts) subdirectory to recreate our curated sequence alignments, and; (3) finally, replace the `?`s with the corresponding sequences to replicate our XML scripts.
 To improve clarity, the name of each sequence in the XML scripts comprises three parts, denoting the GISAID accession ID, sampling geographic area, and sampling date, respectively. For example, the sequence listed under GISAID ID `EPI_ISL_402124` was sampled in China on December 30, 2019, so its name in the XML scripts is thus `402124_China_123019`.
 
-### <a name="step1_dated_phylogeny_inference_analyses"></a>Step 1: Estimating the dated phylogeny of the reduced dataset
-`data/step1_dated_phylogeny_inference/coalExp_ucln_posterior_run1.xml` is the XML script used to infer the dated phylogeny of the reduced SARS-CoV-2 dataset.
-`data/step1_dated_phylogeny_inference/coalExp_ucln_posterior_MCC.tre` is the Maximum Clade Credibility (MCC) tree summarized from the inferred posterior distribution of dated phylogenies (negative branch lengths of this MCC tree, resulted from the summarizing process, were assigned a small positive value, 0.001 days).
-These analyses were performed using [`BEAST` version 1.10.5](https://github.com/beast-dev/beast-mcmc/releases/tag/v1.10.5pre1).
+### <a name="step1_dated_phylogeny_inference_analyses"></a>Step 1: Estimating the dated phylogeny of the reduced SARS-CoV-2 dataset
+We inferred the dated phylogeny for the reduced SARS-CoV-2 dataset using the XML script `data/step1_dated_phylogeny_inference/coalExp_ucln_posterior_run1.xml`.
+The resulting Maximum Clade Credibility (MCC) summary tree inferred from these analyses is located in `data/step1_dated_phylogeny_inference/coalExp_ucln_posterior_MCC.tre`.
+We performed these analyses using [`BEAST` version 1.10.5](https://github.com/beast-dev/beast-mcmc/releases/tag/v1.10.5pre1).
 
-### <a name="step2_model_evaluation_analyses"></a>Step 2: Evaluating candidate biogeographic models using the reduced dataset
-We explored a pool of candidate biogeographic models corresponding to possible combinations of:
+### <a name="step2_model_evaluation_analyses"></a>Step 2: Evaluating candidate biogeographic models using the reduced SARS-CoV-2 dataset
+We explored the relative and absolute fit of the reduced SARS-CoV-2 dataset to 12 candidate biogeographic models corresponding to combinations of:
 * symmetric and asymmetric Q matrices;
 * default and alternative priors on the total number of dispersal routes;
 * default and alternative priors on the average dispersal rate, and;
-* models where the Q matrices and average dispersal rates are piecewise constant over 1, 2 (before and after February 2 2020), or 4 (partitioned by January 12, February 2, and February 16 2020) pre-specified intervals.
+* models where the Q matrices and average dispersal rates are piecewise constant over 1, 2, or 4 pre-specified intervals.
 
-We assessed the *relative fit* of these candidate biogeographic models by computing Bayes factors using the marginal likelihood estimated for each model.
-The XML scripts for the power-posterior analyses that estimate marginal likelihood can be found in subdirectory `analyses/step2_model_evaluation/marginal_likelihood`.
-We also assessed the *absolute fit* of each candidate biogeographic model using posterior-predictive simulation.
-Subdirectory `analyses/step2_model_evaluation/constant/posterior_predictive` contains the XML scripts for the analyses inferring the posteriors, which were then used to perform posterior-predictive simulations.
+We assessed the *relative fit* of these candidate biogeographic models to our reduced SARS-CoV-2 dataset by computing Bayes factors from the marginal likelihoods of competing models.
+We estimated the marginal likelihood for each candidate biogeographic model by performing power-posterior analyses; these XML scrips are located in the subdirectory `analyses/step2_model_evaluation/marginal_likelihood`.
+We also assessed the *absolute fit* of each candidate biogeographic model to our reduced SARS-CoV-2 dataset using posterior-predictive simulation.
+We estimated the posterior probability distribution for each candidate biogeographic model by performing MCMC simulation; these XML scrips are located in the subdirectory `analyses/step2_model_evaluation/constant/posterior_predictive`.
 
-We did these analyses using the reduced dataset.
-To ensure numerical stability of the estimates, these geographic model-evaluation analyses were conditioned on the MCC tree inferred in the [previous step](#step1_dated_phylogeny_inference_analyses).
-The analyses under the constant biogeographic models were performed using [`BEAST` version 1.10.5](https://github.com/beast-dev/beast-mcmc/releases/tag/v1.10.5pre1), whereas the analyses under the piece-wise constant models were performed using a modified version of `BEAST` (see the [program section](#program) below for details).
+Our analyses to evaluate candidate biogeographic models conditioned on the MCC summary phylogeny inferred in the [previous step](#step1_dated_phylogeny_inference_analyses).
+Analyses under the time-constant biogeographic models were performed using [`BEAST` version 1.10.5](https://github.com/beast-dev/beast-mcmc/releases/tag/v1.10.5pre1), whereas the analyses under the piece-wise constant biogeographic models were performed using a modified version of `BEAST` (see the [program section](#program) for details).
 
-### <a name="step3_joint_analyses"></a>Step 3: Jointly inferring SARS-CoV-2 phylogeny and dispersal history using the entire dataset
+### <a name="step3_joint_analyses"></a>Step 3: Jointly inferring the phylogeny, divergence times and geographic history for the entire SARS-CoV-2 dataset
 We estimated the interval-specific dispersal dynamics under the 4-interval piecewise-constant alternative-prior asymmetric geographic model (the best model identified in the [previous section](#step2_model_evaluation_analyses)) jointly with the dated phylogeny to accommodate phylogenetic uncertainty using the entire dataset.
 The XML scripts for these joint analyses can be found in `analyses/step3_joint_analyses`.
 The inferred posterior distribution under the 4-interval model using the entire dataset can be found in the Dryad repository (not available here due to file size limit).
