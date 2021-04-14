@@ -10,8 +10,8 @@ The `data` directory is divided into three subdirectories, one for each primary 
 * intervention-measure data ([`data/measure_data`](#measure_data)).
 
 ### <a name="sequence_data"></a>SARS-CoV-2 Sequence Data
-Our study performed analyses of two SARS-CoV-2 genomic datasets: the *reduced dataset*, with 1271 sequences, and the *entire dataset*, with 2598 sequences.
-The reduced dataset is based on all SARS-CoV-2 genomic sequences&mdash;collected during the early phase of the COVID-19 pandemic&mdash; that were deposited in [GISAID](https://www.gisaid.org) as of April 19 2020.
+Our study includes analyses of two SARS-CoV-2 genomic datasets: the *reduced dataset*, with 1271 sequences, and the *entire dataset*, with 2598 sequences.
+The reduced dataset is based on all SARS-CoV-2 genomic sequences&mdash;collected during the early phase of the COVID-19 pandemic&mdash;that were deposited in [GISAID](https://www.gisaid.org) as of April 19 2020.
 The entire dataset is based on all SARS-CoV-2 sequences collected during the early phase of the COVID-19 pandemic that were deposited in GISAID as of September 22.
 
 GISAID policy prevents us from sharing the `FASTA` files for the SARS-CoV-2 genomic sequences comprising our reduced and entire datasets. We therefore provide the GISAID accession numbers for the SARS-CoV-2 sequences: those comprising the reduced dataset are listed in `data/sequence_data/gisaid_acknowledgement_table_041920_030820.tsv`, and sequences comprising the entire dataset arew listed in `data/sequence_data/gisaid_acknowledgement_table_092220_030820.tsv`.
