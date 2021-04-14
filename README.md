@@ -77,7 +77,7 @@ Our evaluation of candidate biogeographic models conditioned on the MCC summary 
 Our analyses under the time-constant biogeographic models were performed using [`BEAST` version 1.10.5](https://github.com/beast-dev/beast-mcmc/releases/tag/v1.10.5pre1), whereas those under the piece-wise constant biogeographic models were performed using the modified version of `BEAST` (see the [program section](#program) for details).
 
 ### <a name="step3_joint_analyses"></a>Step 3: Jointly inferring the phylogeny, divergence times and geographic history for the entire SARS-CoV-2 dataset
-We inferred the phylogeny, divergence times and geographic history for the entire SARS-CoV-2 dataset. The phylodynamic model that we used for these analyses included the previously selected geographic (sub)model (see [step2](#step2_model_evaluation_analyses)).
+We inferred the phylogeny, divergence times and geographic history for the entire SARS-CoV-2 dataset. The phylodynamic model that we used for these analyses included the previously selected geographic (sub)model (see [step 2](#step2_model_evaluation_analyses)).
 We performed these joint phylodynamic analyses using the modified version of `BEAST`; the corresponding XML files are located in `analyses/step3_joint_analyses`.
 We provide the inferred posterior distribution of phylodynamic model parameters in our Dryad repository (file-size constraints prevent us from including it in this repository).
 
@@ -116,7 +116,7 @@ We simulated full dispersal history over the sampled dated phylogeny for two maj
 Other scripts in this subdirectory contains subroutines that will be evoked by the interface routine.
 One exception is `scripts/history_simulation/posterior_predictive_teststatistics_functions`, which provides functions to calculate posterior-predictive summary statistics (including the tipwise multinomial statistic and the parsimony statistic).
 
-### <a name="parameter_summary_scripts"></a>Summarizing Parameters of Geographic Models
+### <a name="parameter_summary_scripts"></a>Summarizing Geographic-Model Parameters
 `scripts/parameter_summary/get_BFs_counts.R` processes the `BEAST` parameter log file (and simulated history log file if available) to summarize the geographic model parameter estimates for both constant and piecewise constant model, including (interval-specific) pairwise dispersal routes, (interval-specific) global dispersal rate, and (interval-specific) number of pairwise dispersal events.
 `scripts/parameter_summary/get_daily_events_nlieanges.R` processes the `BEAST` simulated history log file (or the tree log file) to summarize the number of dispersal events occurred on each dispersal route (or the number of active viral lineages) in each arbitrarily specified time interval.
 
