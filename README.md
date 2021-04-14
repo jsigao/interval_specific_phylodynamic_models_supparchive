@@ -1,40 +1,40 @@
 # Supplementary Archive for: Phylodynamic insights on the early spread of the COVID-19 pandemic and the efficacy of intervention measures
-This archive contains the materials that are necessary and sufficient to reproduce this study.
-It is divided into four subdirectories: [`data`](#data) (containing the sequence data used in the phylodynamic analyses as well as the travel and measure data), [`analyses`](#analyses) (containing the `BEAST` phylodynamic analyses XML scripts), [`scripts`](#scripts) (containing the data-curation and analyses-postprocessing `R` scripts), and [`program`](#program) (containing a `BEAST` executable with our implemented extensions), each described in detail below.
-This archive is also available as an [Dryad repository](link here).
+This archive contains materials required to reproduce the analyses and results presented in our study.
+It is divided into four directories: the [`data`](#data) directory contains the genomic, geographic and sampling data used in our phylodynamic analyses, and also information regarding human-travel volume and public-health measures; the [`analyses`](#analyses) directory contains the XML scripts used to perform phylodynamic analyses using the `BEAST` software package; the [`scripts`](#scripts) directory contains the `R` scripts used to curate data and to postprocess output from analyses, and; the [`program`](#program) directory contain a modified version of the `BEAST` software package that implements various extensions required to perform some of the phylodynamic analyses in our study. The details of each subdirectory are described below.
+Note that we also provide this archive as a [Dryad repository](link here).
 
 ## <a name="data"></a>Data
-The `data` subdirectory is divided into three subdirectories, corresponding to the three types of data we used in this study, including:
+The `data` directory is divided into three subdirectories, one for each primary type of data used in our study, including:
 * SARS-CoV-2 genomic sequence data ([`data/sequence_data`](#sequence_data)),
 * human-travel data ([`data/sequence_data`](#travel_data)), and
 * intervention-measure data ([`data/measure_data`](#measure_data)).
 
-### <a name="sequence_data"></a>Sequence Data
-Two genomic sequence datasets were used in this study, one with 1271 sequences (*reduced dataset*) and the other with 2598 sequences (*entire dataset*).
-The reduced dataset was curated on April 19 2020, based on all available SARS-CoV-2 genomic sequences&mdash;that were collected during the early phase&mdash;from [GISAID](https://www.gisaid.org) as of that date; all the model-exploration analyses in this study used this dataset.
-Sequences submitted to GISAID between April 20 and September 22 were later added in, resulting in a more comprehensive dataset with 2598 sequences; the final-stage analyses (the joint phylodynamic analysis and the daily dispersal rate analysis), whose results we presented in the main text and drew our conclusions upon, used this dataset.
+### <a name="sequence_data"></a>SARS-CoV-2 Sequence Data
+Our study performed analyses of two SARS-CoV-2 genomic datasets: the *reduced dataset*, with 1271 sequences, and the *entire dataset*, with 2598 sequences.
+The reduced dataset is based on all SARS-CoV-2 genomic sequences&mdash;collected during the early phase of the COVID-19 pandemic&mdash; that were deposited in [GISAID](https://www.gisaid.org) as of April 19 2020.
+The entire dataset is based on all SARS-CoV-2 sequences collected during the early phase of the COVID-19 pandemic that were deposited in GISAID as of September 22.
 
-Observing the terms of use of GISAID, we can not share the `FASTA` files containing the exact sequences we used in our study here; instead, we provide the GISAID accession numbers of the used sequences: `data/sequence_data/gisaid_acknowledgement_table_041920_030820.tsv` for the reduced dataset, and `data/sequence_data/gisaid_acknowledgement_table_092220_030820.tsv` for the entire dataset.
-The associated sampling time and location information can be found in `data/sequence_data/metainfo_041920.tsv` (for the reduced dataset) and `data/sequence_data/metadata_092220.tsv` (for the entire dataset).
-`data/sequence_data/exclude_seqs.tsv` (modified from [Nextstrain ncov exclude list](https://github.com/nextstrain/ncov/blob/master/defaults/exclude.txt) contains name of the sequences that were considered to be duplicates of other sequences in the same dataset; sequences in this list were excluded in the data curation step.
+GISAID policy prevents us from sharing the `FASTA` files for the SARS-CoV-2 genomic sequences comprising our reduced and entire datasets. We therefore provide the GISAID accession numbers for the SARS-CoV-2 sequences: those comprising the reduced dataset are listed in `data/sequence_data/gisaid_acknowledgement_table_041920_030820.tsv`, and sequences comprising the entire dataset arew listed in `data/sequence_data/gisaid_acknowledgement_table_092220_030820.tsv`.
+The metadata for each sequence&mdash;including the sampling date and geographic location&mdash;are listed in `data/sequence_data/metainfo_041920.tsv` for the reduced dataset, and `data/sequence_data/metadata_092220.tsv` for the entire dataset.
+`data/sequence_data/exclude_seqs.tsv`. The accession numbers of sequences that we excluded during the data curation stage (on the basis that they are duplicate sequences) are listed in (https://github.com/nextstrain/ncov/blob/master/defaults/exclude.txt)(modified from [Nextstrain ncov exclude list].
 
-### <a name="travel_data"></a>Travel Data
-Three types of travel data were used in this study, including:
-* global air-travel-volume data ([`data/travel_data/global_flights`](#global_flights_data)),
-* China domestic travel-volume data ([`data/travel_data/china_domestic`](#china_domestic_data)), and
-* US domestic travel-volume data ([`data/travel_data/us_domestic`](#us_domestic_data)).
+### <a name="travel_data"></a>Human-Travel Data
+Our study included three types of human-travel data, including:
+* data on the volume of global air travel ([`data/travel_data/global_flights`](#global_flights_data)),
+* data on the volume of domestic travel in China ([`data/travel_data/china_domestic`](#china_domestic_data)), and
+* data on the volume of domestic travel in the United States ([`data/travel_data/us_domestic`](#us_domestic_data)).
 
-#### <a name="global_flights_data"></a>Global air-travel-volume data
-`data/travel_data/global_flights/nflights_daily_byaircraft.csv` is the global air-travel-volume-data report acquired from FlightAware, containing the number of all commercial passenger flights (broken down into the number of each aircraft type) per day ranging from December 30 2019 to March 8 2020.
-`data/travel_data/global_flights/aircraft_nseats.csv` contains the information (we manually collected) about the number of seats available on each type of aircraft.
-Estimate of the daily number of air passengers (assuming full capacity on each aircraft) can be obtained by summing up the product of the number of flights per day under each aircraft type and the corresponding number of seats of each aircraft type.
+#### <a name="global_flights_data"></a>Global air-travel volume
+Data on the daily volume of global air travel is located in `data/travel_data/global_flights/nflights_daily_byaircraft.csv`&mdash;sourced from FlightAware&mdash;, which contains the number of all commercial passenger flights (with the number of flights for each type of aircraft) on each day between December 30, 2019 to March 8, 2020.
+We summarize data on the passenger occupancy (number of seats) in each type of aircraft in  `data/travel_data/global_flights/aircraft_nseats.csv`.
+We then estimated the daily air-travel volume (assuming maximum capacity for all flights) as follows: first, we compute the product of the number of flights for each type of aircraft times the occupancy for that type of aircraft, and then summing over all aircraft types.
 
-#### <a name="china_domestic_data"></a>China domestic travel-volume data
-`data/travel_data/china_domestic/baidu_mobility_index.csv` contains the daily domestic mobility index of China (ranging from January 1 to March 8, 2020), acquired from [the Baidu Migration platform](https://qianxi.baidu.com/2020); this dataset is derived from Baidu location-based services.
+#### <a name="china_domestic_data"></a>Volume of domestic travel in China
+We summarize data on daily mobility within China between January 1 to March 8, 2020 in `data/travel_data/china_domestic/baidu_mobility_index.csv`; we acquired these data on the daily domestic mobility index from [the Baidu Migration platform](https://qianxi.baidu.com/2020) sourced from the Baidu location-based services.
 
-#### <a name="us_domestic_data"></a>US domestic travel-volume data
-We extracted the daily domestic mobility indices of the US from two publicly available datasets, [Apple COVID-19 mobility trends reports](https://covid19.apple.com/mobility) and [Google COVID-19 community mobility reports](https://www.google.com/covid19/mobility/).
-`data/travel_data/us_domestic/apple_mobility_indices.csv` contains three types of mobility indices (walking, driving, and transit) provided by Apple, which were produced based on the direction requests in Apple Maps.
+#### <a name="us_domestic_data"></a>Volume of domestic travel in the United States
+We extracted the daily domestic mobility indices within the US from two publicly available datasets, [Apple COVID-19 mobility trends reports](https://covid19.apple.com/mobility) and [Google COVID-19 community mobility reports](https://www.google.com/covid19/mobility/).
+`data/travel_data/us_domestic/apple_mobility_indices.csv` contains three types of mobility indices (walking, driving, and transit) provided by Apple, which are based on user direction requests in Apple Maps.
 Each daily mobility index is the relative number of direction requests made on that day compared to the corresponding baseline volume on January 13, 2020 (these indices are only made available by Apple from this date onward to help study mobility trends during the COVID‑19 pandemic).
 `data/travel_data/us_domestic/google_mobility_indices.csv` contains mobility index for each of six types of places (transit, retail and recreation, groceries and pharmacy, parks, workplaces, and residential), derived from Google location-based services.
 These mobility indices are relative values, where the mobility index for a given day is computed as the number of visits on that day divided by the median number of visits on that day measured from January 3 to February 6, 2020 (these indices are only made available by Google from February 6 onward onward to help study mobility trends during the COVID‑19 pandemic).
