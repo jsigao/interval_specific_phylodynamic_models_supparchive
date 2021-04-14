@@ -16,7 +16,7 @@ The entire dataset is based on all SARS-CoV-2 sequences collected during the ear
 
 GISAID policy prevents us from directly sharing the `FASTA` files for the SARS-CoV-2 genomic sequences used in our study. Instead, we provide the corresponding GISAID accession numbers of the SARS-CoV-2 sequences: those comprising the reduced dataset are listed in `data/sequence_data/gisaid_acknowledgement_table_041920_030820.tsv`, and sequences comprising the entire dataset are listed in `data/sequence_data/gisaid_acknowledgement_table_092220_030820.tsv`.
 The metadata for each sequence&mdash;including the sampling date and geographic location&mdash;are listed in `data/sequence_data/metainfo_041920.tsv` for the reduced dataset, and `data/sequence_data/metadata_092220.tsv` for the entire dataset.
-The accession numbers of sequences that we excluded during the data curation stage (on the basis that they are duplicate sequences) are listed in `data/sequence_data/exclude_seqs.tsv` (modified from [Nextstrain ncov exclude list(https://github.com/nextstrain/ncov/blob/master/defaults/exclude.txt)].
+The accession numbers of sequences that we excluded during the data-curation stage (on the basis that they are duplicate sequences) are listed in `data/sequence_data/exclude_seqs.tsv` (modified from [Nextstrain ncov exclude list(https://github.com/nextstrain/ncov/blob/master/defaults/exclude.txt)].
 
 ### <a name="travel_data"></a>Human-Travel Data
 Our study included three types of human-travel data, including:
@@ -25,9 +25,9 @@ Our study included three types of human-travel data, including:
 * data on the volume of domestic travel in the United States ([`data/travel_data/us_domestic`](#us_domestic_data)).
 
 #### <a name="global_flights_data"></a>Global air-travel volume
-Data on the daily volume of global air travel is located in `data/travel_data/global_flights/nflights_daily_byaircraft.csv`&mdash;sourced from FlightAware&mdash;, which contains the number of all commercial passenger flights (with the number of flights for each type of aircraft) on each day between December 30, 2019 to March 8, 2020.
+Data on the daily volume of global air travel&mdash;sourced from FlightAware&mdash;is located in `data/travel_data/global_flights/nflights_daily_byaircraft.csv`; these records include the number of all commercial passenger flights (with the number of flights for each type of aircraft) on each day between December 30, 2019 to March 8, 2020.
 We summarize data on the passenger occupancy (number of seats) in each type of aircraft in  `data/travel_data/global_flights/aircraft_nseats.csv`.
-We then estimated the daily air-travel volume (assuming maximum capacity for all flights) as follows: first, we compute the product of the number of flights for each type of aircraft times the occupancy for that type of aircraft, and then summing over all aircraft types.
+We then estimated the daily air-travel volume (assuming maximum capacity for all flights) as follows: first, we compute the product of the number of flights for each type of aircraft times the passenger occupancy for that type of aircraft, then we sum over all aircraft types.
 
 #### <a name="china_domestic_data"></a>Volume of domestic travel in China
 We summarize data on daily mobility within China between January 1 to March 8, 2020 in `data/travel_data/china_domestic/baidu_mobility_index.csv`; we acquired these data on the daily domestic mobility index from [the Baidu Migration platform](https://qianxi.baidu.com/2020) sourced from the Baidu location-based services.
