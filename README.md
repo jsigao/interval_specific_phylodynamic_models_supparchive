@@ -74,19 +74,17 @@ We also assessed the *absolute fit* of each candidate biogeographic model to our
 We estimated the posterior probability distribution for each candidate biogeographic model by performing MCMC simulation; these XML scrips are located in the subdirectory `analyses/step2_model_evaluation/constant/posterior_predictive`.
 
 Our evaluation of candidate biogeographic models conditioned on the MCC summary phylogeny inferred in [step 1](#step1_dated_phylogeny_inference_analyses).
-Our analyses under the time-constant biogeographic models were performed using [`BEAST` version 1.10.5](https://github.com/beast-dev/beast-mcmc/releases/tag/v1.10.5pre1), whereas those under the piece-wise constant biogeographic models were performed using a modified version of `BEAST` (see the [program section](#program) for details).
+Our analyses under the time-constant biogeographic models were performed using [`BEAST` version 1.10.5](https://github.com/beast-dev/beast-mcmc/releases/tag/v1.10.5pre1), whereas those under the piece-wise constant biogeographic models were performed using the modified version of `BEAST` (see the [program section](#program) for details).
 
 ### <a name="step3_joint_analyses"></a>Step 3: Jointly inferring the phylogeny, divergence times and geographic history for the entire SARS-CoV-2 dataset
-We estimated the interval-specific dispersal dynamics under the 4-interval piecewise-constant alternative-prior asymmetric geographic model (the best model identified in the [previous section](#step2_model_evaluation_analyses)) jointly with the dated phylogeny to accommodate phylogenetic uncertainty using the entire dataset.
-The XML scripts for these joint analyses can be found in `analyses/step3_joint_analyses`.
-The inferred posterior distribution under the 4-interval model using the entire dataset can be found in the Dryad repository (not available here due to file size limit).
-These analyses were performed with the modified version of `BEAST`.
+We inferred the phylogeny, divergence times and geographic history for the entire SARS-CoV-2 dataset. The phylodynamic model that we used for these analyses included the previously selected geographic (sub)model (see [step2](#step2_model_evaluation_analyses)).
+We performed these joint phylodynamic analyses using the modified version of `BEAST`; the corresponding XML files are located in `analyses/step3_joint_analyses`.
+We provide the inferred posterior distribution of phylodynamic model parameters in our Dryad repository (file-size constraints prevent us from including it in this repository).
 
-### <a name="ancillary1_daily_rate"></a>Ancillary analyses 1: Estimating daily global viral dispersal rates for the entire dataset
-We estimated the daily global dispersal rate using the entire SARS-CoV-2 dataset under a more granular phylodynamic model that allows the average dispersal rate to vary from day to day (while keeping the other biogeographic model components identical to the joint inference) to assess the correlation between these estimates with the daily volume of global air travel during the early phase.
-`analyses/ancillary1_daily_rate` contains the XML scripts for the analyses inferring the daily global dispersal rates.
-In these analyses, we accommodated phylogenetic uncertainty by averaging over (a subsample of) the marginal posterior distribution of dated phylogenies inferred in the joint analyses; this distribution of trees can be found in the Dryad repository (not available here due to the file size limit).
-These analyses were performed with the modified version of `BEAST`.
+### <a name="ancillary1_daily_rate"></a>Ancillary analyses 1: Estimating daily global viral dispersal rates for the entire SARS-CoV-2 dataset
+We estimated the daily global viral dispersal rate for the entire SARS-CoV-2 dataset under a more granular phylodynamic model that allows the average dispersal rate to vary from day to day (while keeping the other biogeographic model components identical to the joint inference) to assess the correlation between these estimates with the daily volume of global air travel during the early phase of the COVID-19 pandemic.
+We performed these analyses using the modified version of `BEAST`; the corresponding XML scripts are located in `analyses/ancillary1_daily_rate`.
+To accommodate phylogenetic uncertainty, we performed these analyses while averaging over (a subsample of) the marginal posterior distribution of dated phylogenies inferred in the joint analyses; we include this tree file in our Dryad repository (file-size constraints prevent us from including it in this repository).
 
 ### <a name="ancillary2_reduced_dataset"></a>Ancillary analyses 2: Assessing the impact of incomplete viral sampling
 We also performed additional series of analyses to assess the sensitivity of our results to incomplete and non-random sampling sampling of SARS-CoV-2 sequences.
