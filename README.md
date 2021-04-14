@@ -1,5 +1,5 @@
 # Supplementary Archive for: Phylodynamic insights on the early spread of the COVID-19 pandemic and the efficacy of intervention measures
-This archive contains materials required to replicate the analyses and reproduce the results presented in our study.
+This archive contains the materials required to replicate the analyses and reproduce the results of our study.
 It is divided into four directories: the [`data`](#data) directory contains the genomic, geographic and sampling data used in our phylodynamic analyses, and also information regarding human-travel volume and public-health measures; the [`analyses`](#analyses) directory contains the XML scripts used to perform phylodynamic analyses using the `BEAST` software package; the [`scripts`](#scripts) directory contains the `R` scripts used to curate data and to postprocess output from analyses, and; the [`program`](#program) directory contain a modified version of the `BEAST` software package that implements various extensions required to perform some of the phylodynamic analyses in our study. The details of each subdirectory are described below.
 Note that we also provide this archive as a [Dryad repository](link here).
 
