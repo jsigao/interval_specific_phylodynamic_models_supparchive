@@ -83,13 +83,12 @@ We provide the inferred posterior distribution of phylodynamic model parameters 
 ### <a name="ancillary1_daily_rate"></a>Ancillary analyses 1: Estimating daily global viral dispersal rates for the entire SARS-CoV-2 dataset
 We estimated the daily global viral dispersal rate for the entire SARS-CoV-2 dataset under a more granular phylodynamic model that allows the average dispersal rate to vary from day to day (while keeping the other biogeographic model components identical to the joint inference) to assess the correlation between these estimates with the daily volume of global air travel during the early phase of the COVID-19 pandemic.
 We performed these analyses using the modified version of `BEAST`; the corresponding XML scripts are located in `analyses/ancillary1_daily_rate`.
-To accommodate phylogenetic uncertainty, we performed these analyses while averaging over (a subsample of) the marginal posterior distribution of dated phylogenies inferred in step 3 ([`joint analyses`](#step3_joint_analyses)); we include this tree file in our Dryad repository (file-size constraints prevent us from including it in this repository).
+To accommodate phylogenetic uncertainty, we performed these analyses while averaging over (a subsample of) the marginal posterior distribution of dated phylogenies inferred previously in step 3 ([`joint analyses`](#step3_joint_analyses)); we include this tree file in our Dryad repository (file-size constraints prevent us from including it in this repository).
 
 ### <a name="ancillary2_reduced_dataset"></a>Ancillary analyses 2: Assessing the impact of incomplete viral sampling
 We also performed additional series of analyses to assess the sensitivity of our results to incomplete and non-random sampling sampling of SARS-CoV-2 sequences.
 Specifically, we replicated the entire series of analyses that we performed on the entire SARS-CoV-2 dataset&mdash;including joint inference of phylogeny, divergence times and biogeographic history, as well as analyses to infer daily global viral dispersal rates&mdash;for the reduced SARS-CoV-2 dataset, which has fewer (1271 vs 2598) sequences and different temporal and spatial sampling intensities.
-`analyses/ancillary2_reduced_dataset` contains the XML scripts for these sensitivity analyses.
-These analyses were performed with the modified version of `BEAST`.
+We performed these sensitivity analyses using the modified version of `BEAST`; the corresponding XML scripts are located in `analyses/ancillary2_reduced_dataset`.
 
 ## <a name="scripts"></a>Scripts
 The `scripts` subdirectory contains the `R` scripts we used in this study; it is further divided into three subdirectories, corresponding to the three major types of processing we did (either before or after running the `BEAST` analyses), including:
