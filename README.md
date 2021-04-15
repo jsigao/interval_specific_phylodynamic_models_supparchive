@@ -37,14 +37,14 @@ We extracted data on domestic travel within the US from two publicly available d
 The Apple location-based services provide data on three types of mobility indices (walking, driving, and transit), which are summarized in `data/travel_data/us_domestic/apple_mobility_indices.csv`. These records are based on user direction requests in Apple Maps, where each daily mobility index is the relative number of direction requests made on that day compared to the corresponding baseline volume on January 13, 2020 (these indices are only made available by Apple from this date onward to help study mobility trends during the COVID‑19 pandemic).
 Google location-based services provide data for six types of mobility indices (transit, retail and recreation, groceries and pharmacy, parks, workplaces, and residential), which are summarized in `data/travel_data/us_domestic/google_mobility_indices.csv`. These mobility indices are relative values, where the mobility index for a given day is computed as the number of visits on that day divided by the median number of visits on that day measured from January 3 to February 6, 2020 (these indices are only made available by Google from February 6 onward onward to help study mobility trends during the COVID‑19 pandemic).
 
-### <a name="measure_data"></a>Public-Health Measures
-We focussed on two types of public-health measures involving China during the early phase of COVID-19 pandemic: targeted-containment measures (*i.e.*, international bans on air-travel with China), and the domestic-mitigation measures within China.
-The table `data/measure_data/international_airtravelban_withchina.csv` contains a collection of countries or territories that enacted international travel bans with China, as well as the associated initiation date and information source.
-The table `data/measure_data/china_domestic.csv` contains a collection of provinces or cities of China that enacted domestic-mitigation measures, as well as the associated implementation period, measure type, and information source.
+### <a name="measure_data"></a>Intervention Measures
+We focussed on two types of intervention measures involving China during the early phase of COVID-19 pandemic: targeted-containment measures (*i.e.*, international bans on air-travel with China), and the domestic-mitigation measures within China.
+The table `data/measure_data/international_airtravelban_withchina.csv` contains a collection of countries or territories that imposed international travel bans with China, as well as the associated initiation date and information source.
+The table `data/measure_data/china_domestic.csv` contains a collection of provinces or cities in China that imposed domestic-mitigation measures, as well as the associated implementation period, type of intervention measure, and information source.
 
 ## <a name="analyses"></a> Phylodynamic Analyses
-The `analyses` directory contains the XML scripts that we used to preform the phylodyamic analyses in the `BEAST` software package.
-We include a subdirectory for each stage of analyses that we performed in our study, including:
+The `analyses` directory contains the XML scripts that we used to perform the phylodyamic analyses using the `BEAST` software package.
+We include a subdirectory for each stage of analyses that we performed in our study:
 * analyses to infer a dated phylogeny for the reduced SARS-CoV-2 dataset ([`analyses/step1_dated_phylogeny_inference`](#step1_dated_phylogeny_inference_analyses));
 * analyses to evaluate the fit of candidate biogeographic models to the reduced SARS-CoV-2 dataset ([`analyses/step2_model_evaluation`](#step2_model_evaluation_analyses));
 * analyses to infer the phylogeny, divergence times and biogeographic history for the entire SARS-CoV-2 dataset  ([`analyses/step3_joint_analyses`](#step3_joint_analyses)), under the preferred model identified by the model-evaluation analyses;
