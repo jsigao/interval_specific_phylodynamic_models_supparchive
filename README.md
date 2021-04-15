@@ -19,7 +19,7 @@ The metadata for each sequence&mdash;including the sampling date and geographic 
 The accession numbers of sequences that we excluded during the data-curation stage (because they are duplicates) are listed in `data/sequence_data/exclude_seqs.tsv` (modified from [Nextstrain ncov exclude list(https://github.com/nextstrain/ncov/blob/master/defaults/exclude.txt)].
 
 ### <a name="travel_data"></a>Human-Travel Data
-Our study also involved three types of human-travel data:
+Our study also involved three types of data regarding human-travel volume:
 * data on the volume of global air travel ([`data/travel_data/global_flights`](#global_flights_data)),
 * data on the volume of domestic travel in China ([`data/travel_data/china_domestic`](#china_domestic_data)), and
 * data on the volume of domestic travel in the United States ([`data/travel_data/us_domestic`](#us_domestic_data)).
@@ -30,7 +30,7 @@ We summarize data on the passenger occupancy (number of seats) in each type of a
 We then estimated the daily air-travel volume (assuming maximum capacity for all flights) as follows: first, we compute the product of the number of flights for each type of aircraft times the passenger occupancy for that type of aircraft, then we sum over all aircraft types.
 
 #### <a name="china_domestic_data"></a>Volume of domestic travel in China
-Data on daily mobility within China&mdash;sourced from [the Baidu Migration platform](https://qianxi.baidu.com/2020)(Baidu location-based services&mdash;is located in `data/travel_data/china_domestic/baidu_mobility_index.csv`; these records include the domestic mobility index for each day between January 1 to March 8, 2020.
+Data on daily travel within China&mdash;sourced from [the Baidu Migration platform](https://qianxi.baidu.com/2020) (for location-based services&mdash;is located in `data/travel_data/china_domestic/baidu_mobility_index.csv`; these records include the domestic mobility index for each day between January 1 to March 8, 2020.
 
 #### <a name="us_domestic_data"></a>Volume of domestic travel in the United States
 We extracted the daily domestic mobility indices within the US from two publicly available datasets, [Apple COVID-19 mobility trends reports](https://covid19.apple.com/mobility) and [Google COVID-19 community mobility reports](https://www.google.com/covid19/mobility/).
