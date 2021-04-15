@@ -109,13 +109,13 @@ Finally, the script `scripts/sequence_data_curation/generate_xml_data_head.R` re
 
 ### <a name="history_simulation_scripts"></a>Simulating Geographic Histories
 We simulated dispersal histories over sampled phylogenies to: (1) infer the posterior distribution of geographic histories (using stochastic mapping), and; (2) assess the adequacy of geographic models (using posterior-predictive simulation).
-`scripts/history_simulation/history_simulator_functions.R` script is the interface script that a user can execute the `history_simulator` routine within it to either perform stochastic mapping or posterior-predictive simulation (by setting the argument `conditional` to true or false).
-Other scripts in this subdirectory include subroutines that are executed by the interface routine.
-One exception is `scripts/history_simulation/posterior_predictive_teststatistics_functions`, which provides functions to calculate posterior-predictive summary statistics (including the tipwise multinomial statistic and the parsimony statistic).
+We used the `scripts/history_simulation/history_simulator_functions.R` script to perform either stochastic mapping or posterior-predictive simulation (by setting the argument `conditional` to true [for stochastic mapping] or false [for posterior-precitive simulation]).
+We then used the `scripts/history_simulation/posterior_predictive_teststatistics_functions` script to calculate posterior-predictive summary statistics (including the tipwise multinomial statistic and the parsimony statistic).
+Other scripts in this subdirectory include subroutines that are executed by `history_simulator_functions.R` and are not intended to be used directly.
 
 ### <a name="parameter_summary_scripts"></a>Summarizing Geographic-Model Parameters
-The script `scripts/parameter_summary/get_BFs_counts.R` is used to process the parameter log file output by `BEAST` (and simulated history log file, if available) to summarize the geographic-model parameters for both time-constant and piecewise constant models. These summaries include (interval-specific) pairwise dispersal routes, (interval-specific) global dispersal rates, and (interval-specific) numbers of pairwise dispersal events.
-The script `scripts/parameter_summary/get_daily_events_nlieanges.R` is used to process a simulated-history log file output by `BEAST` (or the tree log file) to summarize the number of dispersal events that occurred over each dispersal route (or the number of active viral lineages) in each arbitrarily specified time interval.
+We used the script `scripts/parameter_summary/get_BFs_counts.R` to process the parameter log file output by `BEAST` (and simulated history log file, if available) to summarize the geographic-model parameters for both time-constant and piecewise constant models. These summaries include (interval-specific) pairwise dispersal routes, (interval-specific) global dispersal rates, and (interval-specific) numbers of pairwise dispersal events.
+We used the script `scripts/parameter_summary/get_daily_events_nlieanges.R` to process a simulated-history log file output by `BEAST` (or the tree log file) to summarize the number of dispersal events that occurred over each dispersal route (or the number of active viral lineages) in each arbitrarily specified time interval.
 
 ## <a name="program"></a>Modified BEAST Program
 We provide an executable for a modified version of the `BEAST` program; our modifications implement various extensions to the piecewise-constant phylodynamic models.
