@@ -104,7 +104,7 @@ By contrast, processing of the entire dataset (where we started from aligned seq
 These scripts also trim the alignment after filtration to generate nucleotide alignments that only retain coding regions.
 
 After the initial curation, we then defined data subsets within the curated alignments using the script `scripts/sequence_data_curation/sequence_process_alignment_foranalysis.R`. Defining subsets of the alignments&mdash;*e.g.*, subdividing sitres in the alignment by codon position and/or by gene regions&mdash;allows us to specify independent substitution models for each subset of the alignment to capture variation in the substitution process across the SARS-CoV-2 genomes.
-The script `scripts/sequence_data_curation/discretetrait_writer.R` generates a data table that contains the sampling date (in unit of days) and sampling locality (according to the discrete geographic areas defined in `scripts/sequence_data_curation/main_config.R`) for each sequence in the alignment.
+The script `scripts/sequence_data_curation/discretetrait_writer.R` generates a data table that contains the sampling date (in units of days) and sampling locality (according to the discrete geographic areas defined in `scripts/sequence_data_curation/main_config.R`) for each sequence in the alignment.
 Finally, the script `scripts/sequence_data_curation/generate_xml_data_head.R` reads in the partitioned sequence alignment and the sampling-information table to generate the `taxa` part of the XML scripts that are provided in the `analyses` directory.
 
 ### <a name="history_simulation_scripts"></a>Simulating Geographic Histories
