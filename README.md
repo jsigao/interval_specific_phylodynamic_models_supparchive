@@ -91,10 +91,10 @@ Specifically, we replicated the entire series of analyses that we performed on t
 We performed these sensitivity analyses using the modified version of `BEAST`; the corresponding XML scripts are located in `analyses/ancillary2_reduced_dataset`.
 
 ## <a name="scripts"></a>Scripts
-The `scripts` subdirectory contains the `R` scripts we used in this study; it is further divided into three subdirectories, corresponding to the three major types of processing we did (either before or after running the `BEAST` analyses), including:
-* the scripts that curate SARS-CoV-2 genomic sequences acquired from GISAID to generate the sequence alignment, sampling time, and sampling geographic area data to be used in the analyses ([`scripts/sequence_data_curation`](#sequence_data_curation_scripts)),
-* the scripts that perform both stochastic mappings and posterior-predictive simulations using the inferred geographic model parameters and dated phylogenies ([`scripts/history_simulation`](#history_simulation_scripts)), and
-* the scripts that process the `BEAST` output files to produce summaries of geographic model parameters ([`scripts/parameter_summary`](#parameter_summary_scripts)).
+The `scripts` directory contains the `R` scripts that we used in this study to:
+* curate SARS-CoV-2 genomic sequences sourced from GISAID to generate the sequence alignment, with the sampling dates and geographic locations of each sequence (see ([`scripts/sequence_data_curation`](#sequence_data_curation_scripts)),
+* perform both stochastic-mapping and posterior-predictive simulations using the inferred geographic model parameters and dated phylogenies (see [`scripts/history_simulation`](#history_simulation_scripts)), and;
+* process `BEAST` output files to generate summaries of various geographic-model parameters (see [`scripts/parameter_summary`](#parameter_summary_scripts)).
 
 ### <a name="sequence_data_curation_scripts"></a>Curating SARS-CoV-2 Sequence Data
 The first step of sequence data curation is to filter the raw sequences downloaded from GISAID those that undermine the analyses due to various reasons (*e.g.*, a sequence that is incomplete or lacks the associated sampling time or location information).
