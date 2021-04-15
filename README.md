@@ -115,7 +115,7 @@ Other scripts in this subdirectory include subroutines that are executed by `his
 
 ### <a name="parameter_summary_scripts"></a>Summarizing Geographic-Model Parameters
 We used the script `scripts/parameter_summary/get_BFs_counts.R` to process the parameter log file output by `BEAST` (and simulated history log file, if available) to summarize the geographic-model parameters for both time-constant and piecewise-constant geographic models. These summaries include (interval-specific) pairwise dispersal routes, (interval-specific) global dispersal rates, and (interval-specific) numbers of pairwise dispersal events.
-We used the script `scripts/parameter_summary/get_daily_events_nlieanges.R` to process a simulated-history log file output by `BEAST` (or the tree log file) to summarize the number of dispersal events that occurred over each dispersal route (or the number of active viral lineages) in each arbitrarily specified time interval.
+We used the script `scripts/parameter_summary/get_daily_events_nlineages.R` to process a simulated-history log file output by `BEAST` (or the tree log file) to summarize the number of dispersal events that occurred over each dispersal route (or the number of active viral lineages) in each arbitrarily specified time interval.
 
 ## <a name="program"></a>Modified BEAST Program
 We provide an executable for a modified version of the `BEAST` program; our modifications implement various extensions to the piecewise-constant phylodynamic models.
