@@ -4,22 +4,22 @@ These materials are located within four directories: the [`data`](#data) directo
 Note that we also provide this archive as a [Dryad repository](link here).
 
 ## <a name="data"></a>Data
-The `data` directory is divided into three subdirectories, one for each primary type of data used in our study, including:
+The `data` directory is divided into three subdirectories, one for each primary type of data used in our study:
 * SARS-CoV-2 genomic sequence data ([`data/sequence_data`](#sequence_data)),
 * human-travel data ([`data/sequence_data`](#travel_data)), and
 * intervention-measure data ([`data/measure_data`](#measure_data)).
 
 ### <a name="sequence_data"></a>SARS-CoV-2 Sequence Data
-Our study includes analyses of two SARS-CoV-2 genomic datasets: the *reduced dataset*, with 1271 sequences, and the *entire dataset*, with 2598 sequences.
-The reduced dataset is based on all SARS-CoV-2 genomic sequences&mdash;collected during the early phase of the COVID-19 pandemic&mdash;that were deposited in [GISAID](https://www.gisaid.org) as of April 19 2020.
+Our study involves analyses of two SARS-CoV-2 genomic datasets: the *reduced dataset*, with 1271 sequences, and the *entire dataset*, with 2598 sequences.
+The reduced dataset is based on all SARS-CoV-2 genomic sequences&mdash;collected during the early phase of the COVID-19 pandemic&mdash;that were deposited in [GISAID](https://www.gisaid.org) as of April 19, 2020.
 The entire dataset is based on all SARS-CoV-2 sequences collected during the early phase of the COVID-19 pandemic that were deposited in GISAID as of September 22, 2020.
 
-GISAID policy prevents us from directly sharing the `FASTA` files for the SARS-CoV-2 genomic sequences used in our study. Instead, we provide the corresponding GISAID accession numbers of the SARS-CoV-2 sequences: those comprising the reduced dataset are listed in `data/sequence_data/gisaid_acknowledgement_table_041920_030820.tsv`, and sequences comprising the entire dataset are listed in `data/sequence_data/gisaid_acknowledgement_table_092220_030820.tsv`.
+GISAID policy prohibits us from directly sharing the `FASTA` files for the SARS-CoV-2 genomic sequences used in our study. Instead, we provide the corresponding GISAID accession numbers of those SARS-CoV-2 sequences: sequences comprising the reduced dataset are listed in `data/sequence_data/gisaid_acknowledgement_table_041920_030820.tsv`, and sequences comprising the entire dataset are listed in `data/sequence_data/gisaid_acknowledgement_table_092220_030820.tsv`.
 The metadata for each sequence&mdash;including the sampling date and geographic location&mdash;are listed in `data/sequence_data/metainfo_041920.tsv` for the reduced dataset, and `data/sequence_data/metadata_092220.tsv` for the entire dataset.
-The accession numbers of sequences that we excluded during the data-curation stage (on the basis that they are duplicate sequences) are listed in `data/sequence_data/exclude_seqs.tsv` (modified from [Nextstrain ncov exclude list(https://github.com/nextstrain/ncov/blob/master/defaults/exclude.txt)].
+The accession numbers of sequences that we excluded during the data-curation stage (because they are duplicates) are listed in `data/sequence_data/exclude_seqs.tsv` (modified from [Nextstrain ncov exclude list(https://github.com/nextstrain/ncov/blob/master/defaults/exclude.txt)].
 
 ### <a name="travel_data"></a>Human-Travel Data
-Our study included three types of human-travel data, including:
+Our study also involved three types of human-travel data:
 * data on the volume of global air travel ([`data/travel_data/global_flights`](#global_flights_data)),
 * data on the volume of domestic travel in China ([`data/travel_data/china_domestic`](#china_domestic_data)), and
 * data on the volume of domestic travel in the United States ([`data/travel_data/us_domestic`](#us_domestic_data)).
