@@ -57,7 +57,7 @@ To improve clarity, the name of each sequence in the XML scripts comprises three
 
 ### <a name="step1_dated_phylogeny_inference_analyses"></a>Step 1: Estimating the dated phylogeny for the reduced SARS-CoV-2 dataset
 We inferred the dated phylogeny for the reduced SARS-CoV-2 dataset using the XML script `data/step1_dated_phylogeny_inference/coalExp_ucln_posterior_run1.xml`.
-The resulting Maximum Clade Credibility (MCC) summary tree inferred from these analyses is located in `data/step1_dated_phylogeny_inference/coalExp_ucln_posterior_MCC.tre`.
+We summarized the tree inferred from these analyses as a Maximum Clade Credibility (MCC) summary tree, which is located in `data/step1_dated_phylogeny_inference/coalExp_ucln_posterior_MCC.tre`.
 We performed these analyses using [`BEAST` version 1.10.5](https://github.com/beast-dev/beast-mcmc/releases/tag/v1.10.5pre1).
 
 ### <a name="step2_model_evaluation_analyses"></a>Step 2: Evaluating candidate geographic models using the reduced SARS-CoV-2 dataset
@@ -83,7 +83,7 @@ We provide the inferred posterior distribution of phylodynamic model parameters 
 ### <a name="ancillary1_daily_rate"></a>Ancillary analyses 1: Estimating daily global viral dispersal rates for the entire SARS-CoV-2 dataset
 We estimated the daily global viral dispersal rate for the entire SARS-CoV-2 dataset under a more granular phylodynamic model that allows the average dispersal rate to vary from day to day (while keeping the other biogeographic model components identical to the joint inference) to assess the correlation between these estimates with the daily volume of global air travel during the early phase of the COVID-19 pandemic.
 We performed these analyses using the modified version of `BEAST`; the corresponding XML scripts are located in `analyses/ancillary1_daily_rate`.
-To accommodate phylogenetic uncertainty, we performed these analyses while averaging over (a subsample of) the marginal posterior distribution of dated phylogenies inferred in the joint analyses; we include this tree file in our Dryad repository (file-size constraints prevent us from including it in this repository).
+To accommodate phylogenetic uncertainty, we performed these analyses while averaging over (a subsample of) the marginal posterior distribution of dated phylogenies inferred in the joint analyses [`analyses/step3_joint_analyses`](#step3_joint_analyses); we include this tree file in our Dryad repository (file-size constraints prevent us from including it in this repository).
 
 ### <a name="ancillary2_reduced_dataset"></a>Ancillary analyses 2: Assessing the impact of incomplete viral sampling
 We also performed additional series of analyses to assess the sensitivity of our results to incomplete and non-random sampling sampling of SARS-CoV-2 sequences.
