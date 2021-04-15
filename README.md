@@ -92,7 +92,7 @@ We performed these sensitivity analyses using the modified version of `BEAST`; t
 
 ## <a name="scripts"></a>Scripts
 The `scripts` directory contains the `R` scripts that we used in this study to:
-* curate SARS-CoV-2 genomic sequences sourced from GISAID to generate the sequence alignment, with the sampling dates and geographic locations of each sequence (see ([`scripts/sequence_data_curation`](#sequence_data_curation_scripts)),
+* curate SARS-CoV-2 genomic sequences sourced from GISAID to generate the sequence alignments, with the sampling dates and geographic locations of each sequence (see ([`scripts/sequence_data_curation`](#sequence_data_curation_scripts)),
 * perform both stochastic-mapping and posterior-predictive simulations using the inferred geographic model parameters and dated phylogenies (see [`scripts/history_simulation`](#history_simulation_scripts)), and;
 * process `BEAST` output files to generate summaries of various geographic-model parameters (see [`scripts/parameter_summary`](#parameter_summary_scripts)).
 
