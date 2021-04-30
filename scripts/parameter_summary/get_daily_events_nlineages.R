@@ -62,6 +62,7 @@ get_complete_history <- function(log_path, burnin = 0) {
   return(list(history_eachpair = history_eachpair))
 }
 
+
 #' Count the number of events between each pair of areas in each time interval
 #' @param history_eachpair a matrix of lists where each list corresponds to a given pair of areas, 
 #' and the element of each list corresponds to a history sample in the posterior 
@@ -111,10 +112,6 @@ get_nevents_perinterval <- function(history_eachpair, epoch_bounds) {
   return(counts_epoch)
 }
 
-origins <- list(1, 1, 1:4, 2:4, 1:4, 1:4, 1:4, 1:4, 1:4, 5:23, c(5:8, 23), c(5:8, 23), 
-               c(1:4, 9:22), 11:17, 11:17, 11:17, c(1:10, 18:23), c(5:10, 18:23), 18:21, c(1:17, 22:23), c(5:17, 22:23), 1:23)
-dests <- list(2:4, 5:23, 1:4, 2:4, 5:23, c(5:8, 23), 11:17, 18:21, c(5:17, 22:23), 1:4, c(5:8, 23), 
-             18:21, c(5:8, 23), 11:17, 18:21, c(1:10, 18:23), 11:17, 11:17, 18:21, 18:21, 18:21, 1:23)
 
 #' Count the number of events occurred on a given dispersal route in each time interval
 #' @param counts_epoch a list of matrices, where each matrix corresponds to a time interval (the first matrix represents the last time interval); 
@@ -144,6 +141,7 @@ get_nevents_oneroute_perinterval <- function(counts_epoch, origin, dest) {
   
   return(nevents_epoch)
 }
+
 
 #' Count the number of active lineages in each time interval
 #' @param trees a list of dated phylogenies (each of class phylo)

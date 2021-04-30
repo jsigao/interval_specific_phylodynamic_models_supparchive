@@ -72,7 +72,9 @@ if (submission_dateby != "041920") {
   metadata <- metadata_gisaid
   metadata <- metadata[match(sequence_accession, metadata$accession_id), ]
 }
+
 metadata$collection_date <- as.Date(metadata$collection_date, format = "%Y-%m-%d")
+# correcting some issues with the medadata table
 metadata[metadata$accession_id == reference_genome_name_string, "division"] <- "Hubei"
 metadata$division[which(metadata$division == "Hangzhou")] <- "Zhejiang"
 

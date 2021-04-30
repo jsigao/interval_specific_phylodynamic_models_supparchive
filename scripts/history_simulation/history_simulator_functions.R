@@ -105,10 +105,12 @@ histories_sim <- function(trees, Qs, Q_ages = NULL, root_freqs = NULL, states, n
 #' @param conditional whether condition on the observed states at the tip (i.e., stochastic mapping) or not (i.e., forward simulation)
 #' @param folder_path path to the directory that contains the BEAST trees file output (associated with the provided log file)
 #' @param file_paths paths to all the log files in the \code{folder_path} to fetch the tree file associated with the provided \code{file_path}
-#' @param sample_size number of full histories to simulate
+#' @param sample_size number of full histories to simulate: if not provided, then it will either be set to 1000 (when \code{conditional} is true or 
+#' when \code{numstates_conditioned} is true and the number of states of the discrete character is greater than 10) or 2500 otherwise
+#' @param histories_exist_path the path to the histories rds file that has been generated: if provided then this function will append the newly simulated histories to the existing ones
 #' @return A multiPhylo and multiSimmap object that contains the simulated full histories
 history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L, nrejections_max = 100L, conditional = F, 
-                              folder_path = NULL, file_paths = NULL, sample_size = NULL) {
+                              folder_path = NULL, file_paths = NULL, sample_size = NULL, histories_exist_path = NULL) {
   
   cat(file_path, sep = "\n")
   
@@ -137,19 +139,16 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
   # read in log file to get the Q matrix parameter estimates
   log_dat <- read.table(file_path, header = T, sep = "\t", check.names = F, stringsAsFactors = F)
   
-  ######################################
-  # determine number of time intervals #
-  ######################################
-  # here we are assume the number of epochal rates is the same as the number of epocal matrices
-  epoch_num <- length(grep("*\\.clock\\.rate.epoch\\d*$|*\\.clock\\.rate$", colnames(log_dat)))
-  Q_ages <- NULL
-  if (epoch_num > 1) {
-    bounds_age_linenums <- grep("epoch transitionTime", x)[grep("epoch transitionTime", x) > grep("epochBranchModel id=", x) & 
-                                                             grep("epoch transitionTime", x) < grep("</epochBranchModel>", x)]
-    if (length(bounds_age_linenums) != epoch_num - 1L) {
-      stop("incorrect number of bounds")
+  sample_indices_exist <- NULL
+  if (!is.null(histories_exist_path)) {
+    histories_exist <- readRDS(histories_exist_path)
+    if (!is.null(file_paths)) {
+      histories_exist <- histories_exist[[match(file_path, file_paths)]]
+    } else {
+      histories_exist <- histories_exist[[1]]
     }
-    Q_ages <- as.numeric(str_extract(x[bounds_age_linenums], "\\d+"))
+    
+    sample_indices_exist <- as.integer(names(histories_exist))
   }
   
   # deciding how many samples to simulate
@@ -184,8 +183,26 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
     if (identical(tree_gens_combined, log_dat[, 1])) { # tree file and log file were sampled at the same frequency
       
       # subsample log file according to the specified number of simulations
-      if (sample_size > nrow(log_dat)) sample_size <- nrow(log_dat)
-      sample_indices <- sample(1:nrow(log_dat), size = sample_size)
+      sample_indices <- 1:nrow(log_dat)
+      if (!is.null(sample_indices_exist)) {
+        if (identical(sample_indices_exist, sample_indices)) {
+          return(histories_exist)
+        } else if (length(sample_indices_exist) == length(sample_indices)) {
+          stop ("number of histories existed match the number of histories that needs to be processed, but history indices don't match.\n")
+        }
+        rm(histories_exist)
+        gc()
+        gc()
+        
+        sample_indices <- sample_indices[!sample_indices %in% sample_indices_exist]
+        cat(paste0(length(sample_indices_exist), " histories simulated, ", length(sample_indices), " histories to simulate.\n"))
+      }
+      
+      if (sample_size < length(sample_indices)) {
+        sample_indices <- sample(sample_indices, size = sample_size)
+      } else {
+        sample_size <- length(sample_indices)
+      }
       log_dat <- log_dat[sample_indices, ]
       
       if (conditional) { # conditioning on the node states
@@ -292,7 +309,7 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
       log_firstgen <- log_dats[[1]][1, 1]
       
       # computing the burnin generations (total gens minus the gens remained) for the log files
-      log_burnin_nrow <- log_nrow - ((log_nrow_combined/nreps - 1) * log_logby_combined / log_logby + 1)
+      log_burnin_nrow <- log_nrow - ((log_nrow_combined / nreps - 1) * log_logby_combined / log_logby + 1)
       gens_remain <- log_dats[[1]][(log_burnin_nrow + 1):log_nrow, 1]
       
       # get the LCM sampling frequency between the log file and the tree file
@@ -305,6 +322,8 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
       # combining the subsampled log files and the tree files
       log_dat <- do.call(rbind, log_dats)
       rm(log_dats)
+      gc()
+      gc()
       
       tree_remain <- tree_gens %in% gens_remain
       tree_txt <- lapply(tree_paths, function(x) system(paste("grep 'tree STATE_'", x), intern = T)[tree_remain])
@@ -315,11 +334,25 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
       }
       
       # subsample the combined log again according to the specified number of simulations
-      if (sample_size > nrow(log_dat)) sample_size <- nrow(log_dat)
-      if (sample_size == nrow(log_dat)) {
-        sample_indices <- 1:sample_size
+      sample_indices <- 1:nrow(log_dat)
+      if (!is.null(sample_indices_exist)) {
+        if (identical(sample_indices_exist, sample_indices)) {
+          return(histories_exist)
+        } else if (length(sample_indices_exist) == length(sample_indices)) {
+          stop ("number of histories existed match the number of histories that needs to be processed, but history indices don't match.\n")
+        }
+        rm(histories_exist)
+        gc()
+        gc()
+        
+        sample_indices <- sample_indices[!sample_indices %in% sample_indices_exist]
+        cat(paste0(length(sample_indices_exist), " histories simulated, ", length(sample_indices), " histories to simulate.\n"))
+      }
+      
+      if (sample_size < length(sample_indices)) {
+        sample_indices <- sample(sample_indices, size = sample_size)
       } else {
-        sample_indices <- sample(1:nrow(log_dat), size = sample_size)
+        sample_size <- length(sample_indices)
       }
       log_dat <- log_dat[sample_indices, ]
       
@@ -354,13 +387,28 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
     
   } else { # scenarios 1 or 2
     
-    if (sample_size > nrow(log_dat)) sample_size <- nrow(log_dat)
-    if (sample_size == nrow(log_dat)) {
-      sample_indices <- 1:sample_size
-    } else {
-      sample_indices <- sample(1:nrow(log_dat), size = sample_size)
+    # subsample log file according to the specified number of simulations
+    sample_indices <- 1:nrow(log_dat)
+    if (!is.null(sample_indices_exist)) {
+      if (identical(sample_indices_exist, sample_indices)) {
+        return(histories_exist)
+      } else if (length(sample_indices_exist) == length(sample_indices)) {
+        stop ("number of histories existed match the number of histories that needs to be processed, but history indices don't match.\n")
+      }
+      rm(histories_exist)
+      gc()
+      gc()
+      
+      sample_indices <- sample_indices[!sample_indices %in% sample_indices_exist]
+      cat(paste0(length(sample_indices_exist), " histories simulated, ", length(sample_indices), " histories to simulate.\n"))
     }
-    log_dat <- log_dat[sample_indices, ] # subsample the log file according to the specified number of simulations
+    
+    if (sample_size < length(sample_indices)) {
+      sample_indices <- sample(sample_indices, size = sample_size)
+    } else {
+      sample_size <- length(sample_indices)
+    }
+    log_dat <- log_dat[sample_indices, ]
     
     if (length(currenttree_colnum) == 1) { # scenario 2
       # read in the tree file that contains the distribution of trees we sampled over in the geographic analysis
@@ -370,7 +418,7 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
         stop("cannot find tree")
       }
       trees <- read.nexus(tree_path)
-      tree_indices <- as.integer(log_dat[, currenttree_colnum] + 1L)
+      tree_indices <- as.integer(log_dat[, currenttree_colnum] + 1L) # as of the current implementation in BEAST the tree indices start from zero
       
       trees <- trees[unique(tree_indices)] # only store the unique trees to save space
       tree_indices <- match(tree_indices, unique(tree_indices))
@@ -389,16 +437,211 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
       stop("don't know what to do")
     }
   }
-  
   gc()
+  gc()
+  
+  ######################################
+  # determine number of time intervals #
+  ######################################
+  # fetch the interval bounds of the average dispersal rate and the Q matrix, respectively (as they can be different)
+  # assume the ages are ordered increasingly in the XML
+  mu_bounds_age_linenums <- grep("epoch transitionTime", x)[grep("epoch transitionTime", x) > grep("rateEpochBranchRates id=", x) & 
+                                                              grep("epoch transitionTime", x) < grep("</rateEpochBranchRates>", x)]
+  Q_bounds_age_linenums <- grep("epoch transitionTime", x)[grep("epoch transitionTime", x) > grep("epochBranchModel id=", x) & 
+                                                             grep("epoch transitionTime", x) < grep("</epochBranchModel>", x)]
+  mu_epoch_num <- length(mu_bounds_age_linenums) + 1L
+  Q_epoch_num <- length(Q_bounds_age_linenums) + 1L
+  
+  mu_bounds_age <- NULL
+  Q_bounds_age <- NULL
+  combined_ages <- NULL
+  combined_muorders <- NULL
+  combined_Qorders <-  NULL
+  
+  if (mu_epoch_num == 1 && Q_epoch_num == 1) {
+    combined_muorders <- 1L
+    combined_Qorders <- 1L
+  } else if (mu_epoch_num > 1 && Q_epoch_num == 1) {
+    mu_bounds_age <- as.numeric(str_extract(x[mu_bounds_age_linenums], "\\d+"))
+    combined_ages <- mu_bounds_age
+    combined_muorders <- 1:mu_epoch_num
+    combined_Qorders <- rep(1L, mu_epoch_num)
+  } else if (mu_epoch_num == 1 && Q_epoch_num > 1) {
+    Q_bounds_age <- as.numeric(str_extract(x[Q_bounds_age_linenums], "\\d+"))
+    combined_ages <- Q_bounds_age
+    combined_muorders <- rep(1L, Q_epoch_num)
+    combined_Qorders <- 1:Q_epoch_num
+  } else {
+    mu_bounds_age <- as.numeric(str_extract(x[mu_bounds_age_linenums], "\\d+"))
+    Q_bounds_age <- as.numeric(str_extract(x[Q_bounds_age_linenums], "\\d+"))
+    combined_ages <- sort(unique(c(mu_bounds_age, Q_bounds_age)))
+    
+    mu_id <- 1L
+    Q_id <- 1L
+    mu_bounds_age <- c(mu_bounds_age, Inf)
+    Q_bounds_age <- c(Q_bounds_age, Inf)
+    while (mu_id <= mu_epoch_num && Q_id <= Q_epoch_num) {
+      combined_muorders <- c(combined_muorders, mu_id)
+      combined_Qorders <- c(combined_Qorders, Q_id)
+      
+      if (mu_bounds_age[mu_id] > Q_bounds_age[Q_id]) {
+        Q_id <- Q_id + 1L
+      } else if (mu_bounds_age[mu_id] < Q_bounds_age[Q_id]) {
+        mu_id <- mu_id + 1L
+      } else {
+        Q_id <- Q_id + 1L
+        mu_id <- mu_id + 1
+      }
+    }
+    
+    mu_bounds_age <- mu_bounds_age[-length(mu_bounds_age)]
+    Q_bounds_age <- Q_bounds_age[-length(Q_bounds_age)]
+  }
+  
+  # sanity check
+  if (length(combined_muorders) != length(combined_Qorders)) {
+    stop("mu-order and Q-order vectors should be identically long")
+  }
+  if (length(combined_muorders) != length(combined_ages) + 1) {
+    stop("mu-order vector should be one element longer than the combined-age vector")
+  }
+  epoch_num <- length(combined_muorders)
   
   ########################
   # prepare the Q matrix #
   ########################
   log_nrow <- nrow(log_dat)
-  Q_all <- vector("list", log_nrow)
+  
+  # rates
+  if (Q_epoch_num == 1) {
+    rates_colnums <- grep("*\\.rates\\d*$|*\\.rates\\.*", colnames(log_dat))
+  } else {
+    rates_colnums <- grep(paste0("*\\.rates.epoch\\d*$|*\\.rates.epoch\\d*\\.*"), colnames(log_dat))
+  }
+  
+  # set default to symmetric model
+  # determine whether it's symmetrical model or asymmetrical model
+  rates_sym <- T
+  if (choose(K, 2) * 2 == length(rates_colnums) / Q_epoch_num) {
+    rates_sym <- F
+  } else if (choose(K, 2) != length(rates_colnums) / Q_epoch_num) {
+    stop("The number of states extracted from the xml file does not match its counterpart computed from the log file.\n")
+  }
+  rates_all <- log_dat[, rates_colnums]
+  
+  rate_mat_all <- vector("list", log_nrow)
   for (l in 1:log_nrow) {
-    Q_all[[l]] <- vector("list", epoch_num)
+    rate_mat_all[[l]] <- vector("list", Q_epoch_num)
+  }
+  
+  rates_startid <- 1L
+  for (i in 1:Q_epoch_num) {
+    
+    for (l in 1:log_nrow) {
+      rate_mat <- matrix(0, nrow = K, ncol = K)
+      rate_mat[lower.tri(rate_mat)] <- as.numeric(rates_all[l, 1:(choose(K, 2)) + rates_startid - 1])
+      rate_mat <- t(rate_mat)
+      if (rates_sym) {
+        rate_mat[lower.tri(rate_mat)] <- as.numeric(rates_all[l, 1:(choose(K, 2)) + rates_startid - 1])
+      } else {
+        rate_mat[lower.tri(rate_mat)] <- as.numeric(rates_all[l, (choose(K, 2) + 1):(choose(K, 2) * 2) + rates_startid - 1])
+      }
+      rate_mat_all[[l]][[i]] <- rate_mat
+    }
+    
+    rates_startid <- rates_startid + choose(K, 2) * (2 - rates_sym)
+  }
+  
+  # indicators
+  if (Q_epoch_num == 1) {
+    indicators_colnums <- grep("*\\.indicators\\d*$|*\\.indicators\\.*", colnames(log_dat))
+  } else {
+    indicators_colnums <- grep(paste0("*\\.indicators.epoch\\d*$|*\\.indicators.epoch\\d*\\.*"), colnames(log_dat))
+  }
+  
+  if (length(indicators_colnums) > 0) {
+    # set default to symmetric model
+    # determine whether it's symmetrical model or asymmetrical model
+    indicators_sym <- T
+    if (choose(K, 2) * 2 == length(indicators_colnums) / Q_epoch_num) {
+      indicators_sym <- F
+    } else if (choose(K, 2) != length(indicators_colnums) / Q_epoch_num) {
+      stop("The number of states extracted from the xml file does not match its counterpart computed from the log file.\n")
+    }
+    indicators_all <- log_dat[, indicators_colnums]
+    
+    indicator_mat_all <- vector("list", log_nrow)
+    for (l in 1:log_nrow) {
+      indicator_mat_all[[l]] <- vector("list", Q_epoch_num)
+    }
+
+    indicators_startid <- 1L
+    for (i in 1:Q_epoch_num) {
+      
+      for (l in 1:log_nrow) {
+        indicator_mat <- matrix(0, nrow = K, ncol = K)
+        indicator_mat[lower.tri(indicator_mat)] <- as.numeric(indicators_all[l, 1:(choose(K, 2)) + indicators_startid - 1])
+        indicator_mat <- t(indicator_mat)
+        if (indicators_sym) {
+          indicator_mat[lower.tri(indicator_mat)] <- as.numeric(indicators_all[l, 1:(choose(K, 2)) + indicators_startid - 1])
+        } else {
+          indicator_mat[lower.tri(indicator_mat)] <- as.numeric(indicators_all[l, (choose(K, 2) + 1): (choose(K, 2) * 2) + indicators_startid - 1])
+        }
+        indicator_mat_all[[l]][[i]] <- indicator_mat
+      }
+      
+      indicators_startid <- indicators_startid + choose(K, 2) * (2 - indicators_sym)
+    }
+  }
+  
+  # fill out each Q matrix
+  Q_all <- rate_mat_all
+  if (length(indicators_colnums) > 0) {
+    for (i in 1:Q_epoch_num) {
+      for (l in 1:log_nrow) {
+        Q_all[[l]][[i]] <- Q_all[[l]][[i]] * indicator_mat_all[[l]][[i]]
+      }
+    }
+  }
+  
+  # rescale each Q matrix
+  for (i in 1:Q_epoch_num) {
+    for (l in 1:log_nrow) {
+      diag(Q_all[[l]][[i]]) <- -apply(Q_all[[l]][[i]], 1, sum)
+      
+      # note here the Q matrix would be correctly rescaled if it's symmetric
+      # but would be incorret if it's asymmetric (as pi won't be flat)
+      # however, this is how beast has been rescaling internally so far, so we need to follow it here
+      pi <- 1 / K
+      mu <- -sum(diag(Q_all[[l]][[i]]) * pi)
+      Q_all[[l]][[i]] <- Q_all[[l]][[i]] / mu
+      
+      dimnames(Q_all[[l]][[i]]) <- list(states, states)
+    }
+  }
+  
+  rm(rate_mat_all)
+  if (length(indicators_colnums) > 0) {
+    rm(indicator_mat_all)
+  }
+  gc()
+  gc()
+  
+  mu_colnums <- grep(paste0("*\\.clock\\.rate.epoch\\d*$|*\\.clock\\.rate$"), colnames(log_dat))
+  if (length(mu_colnums) != mu_epoch_num) {
+    stop("number of columns for mu should be identical to the number of intervals specified in the XML script")
+  }
+  averagerate_all <- log_dat[, mu_colnums]
+  
+  # fill out the vector of unrescaled Qs (where each element corresponds to an interval defined by either Q or mu)
+  combined_Q_all <- vector("list", log_nrow)
+  for (l in 1:log_nrow) {
+    combined_Q_all[[l]] <- vector("list", epoch_num)
+  }
+  for (i in 1:epoch_num) {
+    for (l in 1:log_nrow) {
+      combined_Q_all[[l]][[i]] <- Q_all[[l]][[combined_Qorders[i]]] * averagerate_all[l, combined_muorders[i]]
+    }
   }
   
   # using the estimated root freq vector as the prior probability at the root
@@ -412,106 +655,9 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
     stop ("cannot correctly identify root freqs.\n")
   }
   
-  for (i in 1:epoch_num) {
-    
-    # overall rate
-    mu_colnum <- grep(paste0("*\\.clock\\.rate.epoch", i, "|*\\.clock\\.rate$"), colnames(log_dat))
-    averagerate_all <- log_dat[, mu_colnum]
-    
-    # rates
-    if (epoch_num == 1) {
-      rates_colnums <- grep("*\\.rates\\d*$|*\\.rates\\.*", colnames(log_dat))
-    } else {
-      rates_colnums <- grep(paste0("*\\.rates.epoch", i, "\\d*$|*\\.rates.epoch", i, "\\.*"), colnames(log_dat))
-    }
-    
-    # set default to symmetric model
-    # determine whether it's symmetrical model or asymmetrical model
-    rates_sym <- T
-    if (choose(K, 2) * 2 == length(rates_colnums)) {
-      rates_sym <- F
-    } else if (choose(K, 2) != length(rates_colnums)) {
-      stop("The number of states extracted from the xml file does not match its counterpart computed from the log file.\n")
-    }
-    
-    rates_startcolnum <- min(rates_colnums)
-    rate_mat_all <- vector("list", log_nrow)
-    for (l in 1:log_nrow) {
-      rate_mat <- matrix(0, nrow = K, ncol = K)
-      rate_mat[lower.tri(rate_mat)] <- as.numeric(log_dat[l, 1:(choose(K, 2)) + rates_startcolnum - 1])
-      rate_mat <- t(rate_mat)
-      if (rates_sym) {
-        rate_mat[lower.tri(rate_mat)] <- as.numeric(log_dat[l, 1:(choose(K, 2)) + rates_startcolnum - 1])
-      } else {
-        rate_mat[lower.tri(rate_mat)] <- as.numeric(log_dat[l, (choose(K, 2) + 1):(choose(K, 2) * 2) + rates_startcolnum - 1])
-      }
-      rate_mat_all[[l]] <- rate_mat
-    }
-    
-    # indicators
-    if (epoch_num == 1) {
-      indicators_colnums <- grep("*\\.indicators\\d*$|*\\.indicators\\.*", colnames(log_dat))
-    } else {
-      indicators_colnums <- grep(paste0("*\\.indicators.epoch", i, "\\d*$|*\\.indicators.epoch", i, "\\.*"), colnames(log_dat))
-    }
-    
-    if (length(indicators_colnums) > 0) {
-      # set default to symmetric model
-      # determine whether it's symmetrical model or asymmetrical model
-      indicators_sym <- T
-      if (choose(K, 2) * 2 == length(indicators_colnums)) {
-        indicators_sym <- F
-      } else if (choose(K, 2) != length(indicators_colnums)) {
-        stop("The number of states extracted from the xml file does not match its counterpart computed from the log file.\n")
-      }
-      
-      indicators_startcolnum <- min(indicators_colnums)
-      indicator_mat_all <- vector("list", log_nrow)
-      
-      for (l in 1:log_nrow) {
-        indicator_mat <- matrix(0, nrow = K, ncol = K)
-        indicator_mat[lower.tri(indicator_mat)] <- as.numeric(log_dat[l, 1:(choose(K, 2)) + indicators_startcolnum - 1])
-        indicator_mat <- t(indicator_mat)
-        if (indicators_sym) {
-          indicator_mat[lower.tri(indicator_mat)] <- as.numeric(log_dat[l, 1:(choose(K, 2)) + indicators_startcolnum - 1])
-        } else {
-          indicator_mat[lower.tri(indicator_mat)] <- as.numeric(log_dat[l, (choose(K, 2) + 1): (choose(K, 2) * 2) + indicators_startcolnum - 1])
-        }
-        indicator_mat_all[[l]] <- indicator_mat
-      }
-    }
-    
-    # construct Q matrix
-    for (l in 1:log_nrow) {
-      
-      Q_all[[l]][[i]] <- rate_mat_all[[l]]
-      if (length(indicators_colnums) > 0) {
-        Q_all[[l]][[i]] <- Q_all[[l]][[i]] * indicator_mat_all[[l]]
-      }
-      diag(Q_all[[l]][[i]]) <- -apply(Q_all[[l]][[i]], 1, sum)
-      
-      # note here the Q matrix would be correctly rescaled if it's symmetric
-      # but would be incorret if it's asymmetric (as pi won't be flat)
-      # however, this is how beast has been rescaling internally so far, so we follow it for now
-      # todo: providing a toggle to choose to compute stationary freq and then using it to rescale correctly
-      # this shouldn't matter though as the sim.history function takes the unrescaled Q matrix as its input
-      pi <- 1 / K
-      
-      mu <- -sum(diag(Q_all[[l]][[i]]) * pi)
-      Q_all[[l]][[i]] <- (Q_all[[l]][[i]] / mu) * averagerate_all[l]
-      
-      dimnames(Q_all[[l]][[i]]) <- list(states, states)
-      
-    } # end Q matrix construction
-  } # end epoch loop
-  
   # take care of memory issue
-  rm(rate_mat_all)
-  if (length(indicators_colnums) > 0) {
-    rm(indicator_mat_all)
-  }
-  rm(averagerate_all)
-  rm(log_dat)
+  rm(averagerate_all, Q_all, log_dat)
+  gc()
   gc()
   
   ######################
@@ -521,8 +667,8 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
   
   if (ncores == 1 || sample_size < 100L) { # single core
     histories <- vector("list", sample_size)
-    for (l in 1:log_nrow) {
-      histories[[l]] <- history_sim(tree = trees[[tree_indices[l]]], Q = Q_all[[l]], Q_ages = Q_ages, root_freq = unlist(root_freqs_mat[l, ]), states = states,
+    for (l in 1:sample_size) {
+      histories[[l]] <- history_sim(tree = trees[[tree_indices[l]]], Q = combined_Q_all[[l]], Q_ages = combined_ages, root_freq = unlist(root_freqs_mat[l, ]), states = states,
                                     numstates_conditioned = numstates_conditioned, nrejections_max = nrejections_max, conditional = conditional)
       if (l %% 10 == 0) {
         cat(paste0(l, " histories has been simulated.\n"))
@@ -549,16 +695,30 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
     
     # parse the parameters to simulate a number of histories
     histories_all <- pblapply(his_indices, function(his_idx) {
-      histories_sim(trees = trees[tree_indices[his_idx]], Qs = Q_all[his_idx], Q_ages = Q_ages, root_freqs = root_freqs_mat[his_idx, ], states = states,
+      histories_sim(trees = trees[tree_indices[his_idx]], Qs = combined_Q_all[his_idx], Q_ages = combined_ages, root_freqs = root_freqs_mat[his_idx, ], states = states,
                     numstates_conditioned = numstates_conditioned, nrejections_max = nrejections_max, indices = his_idx, conditional = conditional)
     }, cl = ncores)
     
     histories <- do.call(c, histories_all)
   }
   
-  rm(Q_all)
+  rm(combined_Q_all)
   gc()
   
   names(histories) <- sample_indices
+  
+  # combine existing histories with the newly generated ones
+  if (!is.null(histories_exist_path)) {
+    histories_exist <- readRDS(histories_exist_path)
+    if (!is.null(file_paths)) {
+      histories_exist <- histories_exist[[match(file_path, file_paths)]]
+    } else {
+      histories_exist <- histories_exist[[1]]
+    }
+    
+    histories <- c(histories, histories_exist)
+    histories <- histories[order(as.integer(names(histories)))]
+  }
+  
   return(histories)
 }

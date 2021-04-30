@@ -31,7 +31,7 @@ multinomiallikelihood_tipwise_calculator <- function(nvec, mvec = NULL) {
 #' @param tree a bifuracting tree of class phylo
 #' @param tipstates the observed tip states
 #' @param Q_ages boundaries of time intervals for a piecewise constant geographic model
-#' @return a vector (each element correspond to a time interval, from most ancient to the present) of piecewise constant tipwise multinomial statistics
+#' @return a vector (each element correspond to a time interval, from present to ancient) of piecewise constant tipwise multinomial statistics
 multinomiallikelihood_tipwise_epoch_calculator <- function(tree, tipstates, Q_ages) {
   
   tips <- tree$edge[, 2][!tree$edge[, 2] %in% tree$edge[, 1]]
@@ -157,11 +157,14 @@ simulate_pars <- function(trees, observed_tipstates, states, ncores = 1L) {
 
 #' Compute the piecewise constant parsimony statistics
 #' @param tree a bifuracting tree of class phylo
-#' @param epoch_bound_ages boundaries of time intervals for a piecewise constant geographic model
+#' @param epoch_bound_ages a vector containing the age of time interval boundaries for a piecewise constant geographic model 
+#' (ordered decreasingly so the first two elements are the boundaries of the most ancient interval)
 #' @param node.states identical to the edge matrix of a phylo object except here each element is the node state instead of node index
-#' @return a vector (each element correspond to a time interval, from most ancient to the present) of piecewise constant parsimony statistics
+#' @return a vector (each element correspond to a time interval, from present to ancient) of piecewise constant parsimony statistics
 parsimonyscore_epoch_calculator <- function(tree, epoch_bound_ages, node.states) {
 
+  # make sure the boundaries are orderred decreasingly
+  epoch_bound_ages <- sort(epoch_bound_ages, decreasing = T)
   epoch_num <- length(epoch_bound_ages) - 1L
   
   nedges <- nrow(tree$edge)
@@ -235,14 +238,17 @@ parsimonyscore_pairwise_calculator <- function(tree, node.states, states) {
 
 #' Compute the piecewise constant pairwise parsimony statistics
 #' @param tree a bifuracting tree of class phylo
-#' @param epoch_bound_ages boundaries of time intervals for a piecewise constant geographic model
+#' @param epoch_bound_ages a vector containing the age of time interval boundaries for a piecewise constant geographic model 
+#' (ordered decreasingly so the first two elements are the boundaries of the most ancient interval)
 #' @param node.states identical to the edge matrix of a phylo object except here each element is the node state instead of node index
 #' @param states a vector of states of the discrete character
-#' @return a vector (each element correspond to a time interval, from most ancient to the present) of piecewise constant pairwise parsimony statistics
+#' @return a vector (each element correspond to a time interval, from present to ancient) of piecewise constant pairwise parsimony statistics
 parsimonyscore_pairwise_epoch_calculator <- function(tree, epoch_bound_ages, node.states, states) {
   
-  nstates <- length(states)
+  # make sure the boundaries are orderred decreasingly
+  epoch_bound_ages <- sort(epoch_bound_ages, decreasing = T)
   epoch_num <- length(epoch_bound_ages) - 1L
+  nstates <- length(states)
   
   nedges <- nrow(tree$edge)
   node_times <- ape::node.depth.edgelength(tree)
