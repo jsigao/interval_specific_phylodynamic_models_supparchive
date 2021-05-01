@@ -118,7 +118,7 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
   # read in parameter values and data #
   #####################################
   # read in discrete trait information
-  xml_path <- grep(gsub("_combined\\.log$|\\.log$", "", basename(file_path)), 
+  xml_path <- grep(gsub("_combined.*\\.log$|\\.log$", "", basename(file_path)), 
                    grep("MLE", list.files(dirname(file_path), recursive = T, full.names = T, pattern = "*.xml$"), value = T, invert = T), value = T)
   if (length(xml_path) == 0) {
     stop("cannot find xml")
@@ -229,11 +229,15 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
               failed <- T
             }
             
-            trees <- trees[sample_indices]
+            if (length(trees) != length(tree_gens_combined)) {
+              failed <- T
+            } else {
+              trees <- trees[sample_indices]
+            }
             
           } else { # no augmented (i.e., with node states fetched) tree rds file found
             
-            trees_rdspath <- grep("augmented|simmap|dataframe", list.files(folder_path, full.names = T, recursive = T, pattern = "trees_.*\\.rds$"), value = T, invert = T)
+            trees_rdspath <- grep("augmented|simmap|dataframe|subtree", list.files(folder_path, full.names = T, recursive = T, pattern = "trees_.*\\.rds$"), value = T, invert = T)
             if (length(trees_rdspath) == 1) { # one tree (i.e., no known node states) rds file found
               trees <- readRDS(trees_rdspath)
               
@@ -251,8 +255,12 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
                 failed <- T
               }
               
-              trees <- trees[sample_indices]
-              trees <- lapply(trees, function(x) BeastTreeExtendedPhyloConverter(x, convert = F)) # parse the node.data component of each tree to get the node states
+              if (length(trees) != length(tree_gens_combined)) {
+                failed <- T
+              } else {
+                trees <- trees[sample_indices]
+                trees <- lapply(trees, function(x) BeastTreeExtendedPhyloConverter(x, convert = F)) # parse the node.data component of each tree to get the node states
+              }
             }
           }
         }
@@ -527,7 +535,7 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
   } else if (choose(K, 2) != length(rates_colnums) / Q_epoch_num) {
     stop("The number of states extracted from the xml file does not match its counterpart computed from the log file.\n")
   }
-  rates_all <- log_dat[, rates_colnums]
+  rates_all <- log_dat[, rates_colnums, drop = F]
   
   rate_mat_all <- vector("list", log_nrow)
   for (l in 1:log_nrow) {
@@ -568,7 +576,7 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
     } else if (choose(K, 2) != length(indicators_colnums) / Q_epoch_num) {
       stop("The number of states extracted from the xml file does not match its counterpart computed from the log file.\n")
     }
-    indicators_all <- log_dat[, indicators_colnums]
+    indicators_all <- log_dat[, indicators_colnums, drop = F]
     
     indicator_mat_all <- vector("list", log_nrow)
     for (l in 1:log_nrow) {
@@ -631,7 +639,7 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
   if (length(mu_colnums) != mu_epoch_num) {
     stop("number of columns for mu should be identical to the number of intervals specified in the XML script")
   }
-  averagerate_all <- log_dat[, mu_colnums]
+  averagerate_all <- log_dat[, mu_colnums, drop = F]
   
   # fill out the vector of unrescaled Qs (where each element corresponds to an interval defined by either Q or mu)
   combined_Q_all <- vector("list", log_nrow)
@@ -649,7 +657,7 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
   root_freqs_mat <- NULL
   rootfreq_colnum <- grep("\\.root\\.frequencies", colnames(log_dat))
   if (length(rootfreq_colnum) == K) {
-    root_freqs_mat <- log_dat[, rootfreq_colnum]
+    root_freqs_mat <- log_dat[, rootfreq_colnum, drop = F]
     colnames(root_freqs_mat) <- states
   } else if (length(rootfreq_colnum) > 0 && length(rootfreq_colnum) != K) {
     stop ("cannot correctly identify root freqs.\n")
