@@ -19,12 +19,12 @@ time-constant and interval-specific (2 intervals), and then centered the paramet
 
 ### <a name="analyzing_simulated_datasets"></a> Analyzing Simulated Datasets
 <!-- We performed separate analyses of each simulated dataset under each of the two models, resulting in four true:inference model combinations (${1\mu1\mathbf{Q}{:}1\mu1\mathbf{Q}}$, ${2\mu2\mathbf{Q}{:}2\mu2\mathbf{Q}}$, ${1\mu1\mathbf{Q}{:}2\mu2\mathbf{Q}}$, and ${2\mu2\mathbf{Q}{:}1\mu1\mathbf{Q}}$). -->
-We estimated the posterior distribution for each simulated dataset separately under each inference model by performing MCMC simulation using `BEAST`; these XML scrips are located in the subdirectory `analyzing_simulated_datasets/posterior_predictive`.
+We estimated the posterior distribution for each simulated dataset separately under each inference model by performing MCMC simulation using `BEAST`; we provide example XML scripts for this analysis in the subdirectory `analyzing_simulated_datasets/posterior_predictive`.
 We used the resulting posterior estimates in two ways: 
 (1) to evaluate the statistical behavior of each inference model (by computing the coverage probability and absolute error for the model parameters and the pairwise and total number of dispersal events), and; 
 (2) to perform posterior-predictive simulation (using the `R` scripts provided in [the history-simulation-script section](#history_simulation_scripts)) to assess the *absolute fit* (adequacy) of each model.
 We also assessed the *relative fit* of competing inference models by computing Bayes factors based on their marginal-likelihood estimates.
-We estimated the marginal likelihood for each inference model by performing power-posterior analyses for each simulated dataset using `BEAST`; these XML scrips are located in the subdirectory `analyzing_simulated_datasets/marginal_likelihood`.
+We estimated the marginal likelihood for each inference model by performing power-posterior analyses for each simulated dataset using `BEAST`; we provide example XML scripts for this analysis in the subdirectory `analyzing_simulated_datasets/marginal_likelihood`.
 
 ## <a name="empirical_application"></a>Empirical Application
 The `empirical_application` directory contains the genomic, geographic and sampling data used in our empirical phylodynamic analyses (within the [`data`](#data) subdirectory) and the `BEAST` XML scripts to specify these phylodynamic analyses (within the [`analyses`](#analyses) subdirectory).
@@ -86,9 +86,9 @@ We specified interval boundaries based on external information regarding events 
 The final candidate model, ${5\mu5\mathbf{Q}^*}$, includes five arbitrary and uniform (bi-weekly) intervals. -->
 
 We assessed the *relative fit* of competing geographic models by computing Bayes factors based on their marginal-likelihood estimates.
-We estimated the marginal likelihood for each candidate geographic model by performing power-posterior analyses; these XML scrips are located in the subdirectory `analyses/step2_model_evaluation/marginal_likelihood`.
+We estimated the marginal likelihood for each candidate geographic model by performing power-posterior analyses; these XML scripts are located in the subdirectory `analyses/step2_model_evaluation/marginal_likelihood`.
 We also assessed the *absolute fit* of each candidate geographic model using posterior-predictive simulation.
-We estimated the posterior distribution for each candidate geographic model by performing MCMC simulation; these XML scrips are located in the subdirectory `analyses/step2_model_evaluation/posterior_predictive`.
+We estimated the posterior distribution for each candidate geographic model by performing MCMC simulation; these XML scripts are located in the subdirectory `analyses/step2_model_evaluation/posterior_predictive`.
 
 Our evaluation of candidate geographic models condition on the MCC summary phylogeny inferred in [step 1](#step1_dated_phylogeny_inference_analyses).
 Our analyses under the time-constant geographic models were performed using [`BEAST` version 1.10.5](https://github.com/beast-dev/beast-mcmc/releases/tag/v1.10.5pre1), whereas those under the interval-specific geographic models were performed using our modified version of `BEAST` (see the [program section](#program) for details).
