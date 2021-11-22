@@ -10,11 +10,12 @@ These analyses conditioned on the MCC summary phylogeny inferred in [empirical a
 
 ### <a name="generating_simulated_datasets"></a> Generating Simulated Datasets
 Our simulation study explored a region of parameter space that is centered on the joint posterior probability distribution of phylodynamic model parameters estimated from our empirical analyses.
-To that end, we used the `BEAST` XML scripts in the `generating_simulated_datasets` subdirectory to first analyzed our empirical dataset (the reduced SARS-CoV-2 dataset, see [the empirical-data section](#data)) under each of two models, $1\mu1\mathbf{Q}$ and $2\mu2\mathbf{Q}$, and then centered the parameter values of our simulation on the resulting posterior median estimates of the corresponding parameters (using the `R` scripts provided in [the history-simulation-script section](#history_simulation_scripts)).
+To that end, we used the `BEAST` XML scripts in the `generating_simulated_datasets` subdirectory to first analyzed our empirical dataset (the reduced SARS-CoV-2 dataset, see [the empirical-data section](#data)) under each of two models, <!-- $1\mu1\mathbf{Q}$ and $2\mu2\mathbf{Q}$,  -->
+time-constant and interval-specific (2 intervals), and then centered the parameter values of our simulation on the resulting posterior median estimates of the corresponding parameters (using the `R` scripts provided in [the history-simulation-script section](#history_simulation_scripts)).
 
 ### <a name="analyzing_simulated_datasets"></a> Analyzing Simulated Datasets
-We performed separate analyses of each simulated dataset under each of the two models, resulting in four true:inference model combinations (${1\mu1\mathbf{Q}{:}1\mu1\mathbf{Q}}$, ${2\mu2\mathbf{Q}{:}2\mu2\mathbf{Q}}$, ${1\mu1\mathbf{Q}{:}2\mu2\mathbf{Q}}$, and ${2\mu2\mathbf{Q}{:}1\mu1\mathbf{Q}}$).
-We estimated the posterior distribution for each simulated dataset by performing MCMC simulation using `BEAST`; these XML scrips are located in the subdirectory `analyzing_simulated_datasets/posterior_predictive`.
+<!-- We performed separate analyses of each simulated dataset under each of the two models, resulting in four true:inference model combinations (${1\mu1\mathbf{Q}{:}1\mu1\mathbf{Q}}$, ${2\mu2\mathbf{Q}{:}2\mu2\mathbf{Q}}$, ${1\mu1\mathbf{Q}{:}2\mu2\mathbf{Q}}$, and ${2\mu2\mathbf{Q}{:}1\mu1\mathbf{Q}}$). -->
+We estimated the posterior distribution for each simulated dataset under each inference model by performing MCMC simulation using `BEAST`; these XML scrips are located in the subdirectory `analyzing_simulated_datasets/posterior_predictive`.
 The inferred posterior distribution is then used for two purposes: (1) evaluating the statistical behavior of each inference model (by computing the coverage probability and absolute error for the model parameters and the pairwise and total number of dispersal events), and (2) performing posterior-predictive simulation (using the `R` scripts provided in [the history-simulation-script section](#history_simulation_scripts)) to assess the *absolute fit* (adequacy) of each model.
 We also assessed the *relative fit* of competing inference models by computing Bayes factors based on their marginal-likelihood estimates.
 We estimated the marginal likelihood for each inference model by performing power-posterior analyses for each simulated dataset using `BEAST`; these XML scrips are located in the subdirectory `analyzing_simulated_datasets/marginal_likelihood`.
@@ -70,9 +71,10 @@ We performed these analyses using [`BEAST` version 1.10.5](https://github.com/be
 
 #### <a name="step2_model_evaluation_analyses"></a>Step 2: Evaluating candidate geographic models using the reduced SARS-CoV-2 dataset
 We assessed both the *relative* and *absolute* fit of each of nine candidate biogeographic models to our reduced SARS-CoV-2 dataset.
-These models assign interval-specific parameters---for the average rate of viral dispersal, $\mu$, and/or relative rates of viral dispersal, $\mathbf{Q}$---to one, two, four, or five pre-specified time intervals; *i.e.*, ${1\mu1\mathbf{Q}}$, ${1\mu2\mathbf{Q}}$, ${2\mu1\mathbf{Q}}$, ${2\mu2\mathbf{Q}}$, ${1\mu4\mathbf{Q}}$, ${4\mu1\mathbf{Q}}$, ${4\mu4\mathbf{Q}}$, ${5\mu5\mathbf{Q}}$, and ${5\mu5\mathbf{Q}^*}$.
+These models assign interval-specific parameters&mdash;for the average rate of viral dispersal and/or relative rates of viral dispersal&mdash;to one, two, four, or five pre-specified time intervals.
+<!-- These models assign interval-specific parameters&mdash;for the average rate of viral dispersal, $\mu$, and/or relative rates of viral dispersal, $\mathbf{Q}$&mdash;to one, two, four, or five pre-specified time intervals; *i.e.*, ${1\mu1\mathbf{Q}}$, ${1\mu2\mathbf{Q}}$, ${2\mu1\mathbf{Q}}$, ${2\mu2\mathbf{Q}}$, ${1\mu4\mathbf{Q}}$, ${4\mu1\mathbf{Q}}$, ${4\mu4\mathbf{Q}}$, ${5\mu5\mathbf{Q}}$, and ${5\mu5\mathbf{Q}^*}$.
 We specified interval boundaries based on external information regarding events within the study period that might plausibly impact viral dispersal dynamics (*e.g.*, onset of international air-travel restrictions against China on February 2).
-The final candidate model, ${5\mu5\mathbf{Q}^*}$, includes five arbitrary and uniform (bi-weekly) intervals.
+The final candidate model, ${5\mu5\mathbf{Q}^*}$, includes five arbitrary and uniform (bi-weekly) intervals. -->
 
 We assessed the *relative fit* of competing biogeographic models by computing Bayes factors based on their marginal-likelihood estimates.
 We estimated the marginal likelihood for each candidate biogeographic model by performing power-posterior analyses; these XML scrips are located in the subdirectory `analyses/step2_model_evaluation/marginal_likelihood`.
