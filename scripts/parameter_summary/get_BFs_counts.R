@@ -64,15 +64,17 @@ get_stationary_freq <- function(Q) {
 #' Extract and store geographic model parameter estimates from a BEAST log-file output
 #' @param log_path path to the BEAST log file
 #' @param burnin fraction of or absolute number of generations of the log file to be discarded as burnin
+#' @param symmetric_rescaled whether the rescaling was done assuming the Q matrix is symmetric (original implementation in BEAST so it's the default here)
+#' or allowing Q to be asymmetric during the BEAST inference
 #' @return a list (each one correspond to an interval defined by the Q matrix; lacking of this layer if the model is constant)
 #' of list of parameter summaries
-get_BF_counts <- function(log_path, burnin = 0) {
+get_BF_counts <- function(log_path, burnin = 0, symmetric_rescaled = T) {
   
   log_dat <- read.table(log_path, header = T, sep = "\t", check.names = F, stringsAsFactors = F)
   
   # Remove the rows where flatlines are
   if (any(log_dat$posterior == Inf)) {
-    log_dat <- log_dat[-(which(log_dat$posterior == Inf)),]
+    log_dat <- log_dat[-(which(log_dat$posterior == Inf)), ]
   }
   
   # get the number of states
@@ -81,7 +83,7 @@ get_BF_counts <- function(log_path, burnin = 0) {
                    grep("MLE", list.files(dirname(log_path), recursive = T, full.names = T, pattern = "*.xml$"), value = T, invert = T), value = T)
   if (length(xml_path) == 0) {
     stop("cannot find xml")
-  } else if (length(xml_path) > 1 && length(unique(gsub("_run(.*?)\\.xml$", "", basename(xml_path)))) != 1) {
+  } else if (length(xml_path) > 1 && length(unique(gsub("_run(.*?)\\.xml$|_burnin_run(.*?)\\.xml$", "", basename(xml_path)))) != 1) {
     stop("cannot find xml")
   } else {
     xml_path <- xml_path[1]
@@ -177,16 +179,37 @@ get_BF_counts <- function(log_path, burnin = 0) {
   # and each event is defined by its age, from and to states
   if (txt_nrow > 0) {
     history_df_all <- vector("list", txt_nrow)
+    history_dummy <- data.frame(age = numeric(), from = character(), to = character(), stringsAsFactors = F)
     for (l in 1:txt_nrow) {
       history <- unlist(strsplit(history_log[l, history_colnum], "\\{\\{|\\}\\,\\{|\\}\\}"))
-      history <- history[-c(1, length(history))]
-      history <- data.frame(matrix(unlist(strsplit(history, ",")), ncol = 4, byrow = T), stringsAsFactors = F)
-      history <- history[, -1]
-      
-      colnames(history) <- c("age", "from", "to")
-      history$age <- as.numeric(history$age)
-      history_df_all[[l]] <- history
+      if (length(history) >= 3) {
+        history <- history[-c(1, length(history))]
+        history <- data.frame(matrix(unlist(strsplit(history, ",")), ncol = 4, byrow = T), stringsAsFactors = F)
+        history <- history[, -1]
+        
+        colnames(history) <- c("age", "from", "to")
+        history$age <- as.numeric(history$age)
+        history_df_all[[l]] <- history
+      } else {
+        history_df_all[[l]] <- history_dummy
+      }
     }
+  }
+  
+  # root frequency
+  root_freqs_mat <- NULL
+  root_freqs_mean <- NULL
+  root_freqs_median <- NULL
+  rootfreq_colnum <- grep("\\.root\\.frequencies", colnames(log_dat))
+  if (length(rootfreq_colnum) == K) {
+    root_freqs_mat <- log_dat[, rootfreq_colnum, drop = F]
+    colnames(root_freqs_mat) <- state.names
+    root_freqs_mean <- apply(root_freqs_mat, 2, mean)
+    root_freqs_mean <- root_freqs_mean / sum(root_freqs_mean)
+    root_freqs_median <- apply(root_freqs_mat, 2, median)
+    root_freqs_median <- root_freqs_median / sum(root_freqs_median)
+  } else if (length(rootfreq_colnum) > 0 && length(rootfreq_colnum) != K) {
+    stop ("cannot correctly identify root freqs.\n")
   }
   
   # fetch the interval bounds of the average dispersal rate and the Q matrix, respectively (as they can be different)
@@ -222,9 +245,11 @@ get_BF_counts <- function(log_path, burnin = 0) {
     
     # set default to symmetric model
     # determine whether it's symmetrical model or asymmetrical model
+    matrix_sym <- T
     rates_sym <- T
     if (choose(K, 2) * 2 == length(rates_colnums)) {
       rates_sym <- F
+      matrix_sym <- F
     } else if (choose(K, 2) != length(rates_colnums)) {
       stop("The number of states extracted from the xml file does not match its counterpart computed from the log file.\n")
     }
@@ -252,12 +277,18 @@ get_BF_counts <- function(log_path, burnin = 0) {
     }
     
     # fill out indicator matrices
+    indicators_sym <- T
+    indicator_mat_all <- NULL
+    posterior_mat <- NULL
+    analytical_prior <- NULL
+    BF_mat <- NULL
+    
     if (length(indicators_colnums) > 0) {
       # set default to symmetric model
       # determine whether it's symmetrical model or asymmetrical model
-      indicators_sym <- T
       if (choose(K, 2) * 2 == length(indicators_colnums)) {
         indicators_sym <- F
+        matrix_sym <- F
       } else if (choose(K, 2) != length(indicators_colnums)) {
         stop("The number of states extracted from the xml file does not match its counterpart computed from the log file.\n")
       }
@@ -276,60 +307,65 @@ get_BF_counts <- function(log_path, burnin = 0) {
         }
         indicator_mat_all[[l]] <- indicator_mat
       }
-    }
-    
-    # calculate the posterior estimates of indicators
-    if (indicators_sym) {
-      posterior <- numeric(choose(K, 2))
-      for (j in 1:choose(K, 2)) {
-        posterior[j] <- mean(log_dat[, j + indicators_startcolnum - 1])
+      
+      # calculate the posterior estimates of indicators
+      if (indicators_sym) {
+        posterior <- numeric(choose(K, 2))
+        for (j in 1:choose(K, 2)) {
+          posterior[j] <- mean(log_dat[, j + indicators_startcolnum - 1])
+        }
+      } else {
+        posterior <- numeric(choose(K, 2) * 2)
+        for (j in 1:(choose(K, 2) * 2)) {
+          posterior[j] <- mean(log_dat[, j + indicators_startcolnum - 1])
+        }
       }
-    } else {
-      posterior <- numeric(choose(K, 2) * 2)
-      for (j in 1:(choose(K, 2) * 2)) {
-        posterior[j] <- mean(log_dat[, j + indicators_startcolnum - 1])
+      
+      posterior_mat <- matrix(0, nrow = K, ncol = K)
+      if (indicators_sym) {
+        posterior_mat[lower.tri(posterior_mat)] <- posterior
+        posterior_mat <- t(posterior_mat)
+        posterior_mat[lower.tri(posterior_mat)] <- posterior
+      } else {
+        posterior_mat[lower.tri(posterior_mat)] <- posterior[1:choose(K, 2)]
+        posterior_mat <- t(posterior_mat)
+        posterior_mat[lower.tri(posterior_mat)] <- posterior[(choose(K, 2) + 1):(choose(K, 2) * 2)]
       }
-    }
-    
-    posterior_mat <- matrix(0, nrow = K, ncol = K)
-    if (indicators_sym) {
-      posterior_mat[lower.tri(posterior_mat)] <- posterior
-      posterior_mat <- t(posterior_mat)
-      posterior_mat[lower.tri(posterior_mat)] <- posterior
-    } else {
-      posterior_mat[lower.tri(posterior_mat)] <- posterior[1:choose(K, 2)]
-      posterior_mat <- t(posterior_mat)
-      posterior_mat[lower.tri(posterior_mat)] <- posterior[(choose(K, 2) + 1):(choose(K, 2) * 2)]
-    }
-    
-    pois_str <- grep("<poissonPrior", x, value = T)[i] # here we assumes each epoch has its independent prior on mu
-    if (length(pois_str) == 0) {
-      lambda <- choose(K, 2) * 0.5 * (2 - indicators_sym)
-    } else {
-      lambda <- sum(as.numeric(gsub("mean", "", unlist(strsplit(gsub(" |<poissonPrior|\t|=|\"|>", "", pois_str), split = "offset")))))
-    }
-    
-    # calculate the so-called analytical prior
-    analytical_prior <- lambda / (choose(K, 2) * (2 - indicators_sym))
-    
-    # calculate the Bayes factors
-    BF_original <- (posterior/(1 - posterior))/(analytical_prior/(1 - analytical_prior))
-    if (any(BF_original == -Inf)) {
-      BF_original[BF_original == -Inf] <- Inf
-    }
-    
-    BF_mat <- matrix(0, nrow = K, ncol = K)
-    if (indicators_sym) { # symmetric
-      BF_mat[lower.tri(BF_mat)] <- BF_original
-      BF_mat <- t(BF_mat)
-      BF_mat[lower.tri(BF_mat)] <- BF_original
-    } else { # asymmetric
-      BF_mat[lower.tri(BF_mat)] <- BF_original[1:choose(K, 2)]
-      BF_mat <- t(BF_mat)
-      BF_mat[lower.tri(BF_mat)] <- BF_original[(choose(K, 2) + 1):(choose(K, 2) * 2)]
+      
+      pois_str <- grep("<poissonPrior", x, value = T)[i] # here we assumes each epoch has its independent prior on delta
+      if (length(pois_str) == 0) {
+        lambda <- choose(K, 2) * 0.5 * (2 - indicators_sym)
+      } else {
+        lambda <- sum(as.numeric(gsub("mean", "", unlist(strsplit(gsub(" |<poissonPrior|\t|=|\"|>", "", pois_str), split = "offset")))))
+      }
+      
+      # calculate the so-called analytical prior
+      analytical_prior <- lambda / (choose(K, 2) * (2 - indicators_sym))
+      
+      # calculate the Bayes factors
+      BF_original <- (posterior / (1 - posterior)) / (analytical_prior / (1 - analytical_prior))
+      if (any(BF_original == -Inf)) {
+        BF_original[BF_original == -Inf] <- Inf
+      }
+      
+      BF_mat <- matrix(0, nrow = K, ncol = K)
+      if (indicators_sym) { # symmetric
+        BF_mat[lower.tri(BF_mat)] <- BF_original
+        BF_mat <- t(BF_mat)
+        BF_mat[lower.tri(BF_mat)] <- BF_original
+      } else { # asymmetric
+        BF_mat[lower.tri(BF_mat)] <- BF_original[1:choose(K, 2)]
+        BF_mat <- t(BF_mat)
+        BF_mat[lower.tri(BF_mat)] <- BF_original[(choose(K, 2) + 1):(choose(K, 2) * 2)]
+      }
     }
     
     # counts
+    counts_mat_all <- NULL
+    counts_mean_mat <- NULL
+    counts_HPD_lower_mat <- NULL
+    counts_HPD_upper_mat <- NULL
+    
     if (txt_nrow > 0) { # when we have the simulated complete history
       if (Q_epoch_num > 1) {
         history_df <- vector("list", txt_nrow)
@@ -349,6 +385,7 @@ get_BF_counts <- function(log_path, burnin = 0) {
       }
       
       counts_all <- matrix(0, nrow = txt_nrow, ncol = K * K)
+      counts_mat_all <- vector("list", txt_nrow)
       for (l in 1:txt_nrow) {
         for (j in 1:K) {
           for (k in 1:K) {
@@ -357,8 +394,10 @@ get_BF_counts <- function(log_path, burnin = 0) {
             }
           }
         }
+        
+        counts_mat_all[[l]] <- matrix(counts_all[l, ], nrow = K, ncol = K, byrow = T)
       }
-      
+
       counts_mean_vec <- apply(counts_all, 2, mean)
       counts_HPD_lower_vec <- apply(counts_all, 2, function(x) quantile(x, probs = c(0.025, 0.975))[1])
       counts_HPD_upper_vec <- apply(counts_all, 2, function(x) quantile(x, probs = c(0.025, 0.975))[2])
@@ -366,6 +405,9 @@ get_BF_counts <- function(log_path, burnin = 0) {
       counts_mean_mat <- matrix(counts_mean_vec, nrow = K, ncol = K, byrow = T)
       counts_HPD_lower_mat <- matrix(counts_HPD_lower_vec, nrow = K, ncol = K, byrow = T)
       counts_HPD_upper_mat <- matrix(counts_HPD_upper_vec, nrow = K, ncol = K, byrow = T)
+      
+      rm(counts_all)
+      gc()
       
     } else if (length(grep("*.count\\[", colnames(log_dat))) == choose(K, 2) * 2 ||
                length(grep("*.count\\[", colnames(log_dat))) == choose(K, 2) * 2 + 1) { 
@@ -390,13 +432,21 @@ get_BF_counts <- function(log_path, burnin = 0) {
           counts_mean_vec[counts_num] <- mean(log_dat[, colnum])
           counts_HPD_lower_vec[counts_num] <- quantile(log_dat[, colnum], probs = c(0.025, 0.975))[1]
           counts_HPD_upper_vec[counts_num] <- quantile(log_dat[, colnum], probs = c(0.025, 0.975))[2]
-          colnum <- colnum + 1
+          colnum <- colnum + 1L
         }
+      }
+      
+      counts_mat_all <- vector("list", log_nrow)
+      for (l in 1:log_nrow) {
+        counts_mat_all[[l]] <- matrix(counts_all[l, ], nrow = K, ncol = K, byrow = T)
       }
       
       counts_mean_mat <- matrix(counts_mean_vec, nrow = K, ncol = K, byrow = T)
       counts_HPD_lower_mat <- matrix(counts_HPD_lower_vec, nrow = K, ncol = K, byrow = T)
       counts_HPD_upper_mat <- matrix(counts_HPD_upper_vec, nrow = K, ncol = K, byrow = T)
+      
+      rm(counts_all)
+      gc()
     }
     
     # mu and qij
@@ -412,19 +462,25 @@ get_BF_counts <- function(log_path, burnin = 0) {
       } else {
         mu_bounds_age_this <- mu_bounds_age[mu_bounds_age > Q_bounds_age[i - 1]]
       }
-      mu_colnum <- grep("*\\.clock\\.rate.epoch\\d{1,3}$", colnames(log_dat))[match(mu_bounds_age_this, mu_bounds_age)]
-      if (length(mu_bounds_age_this) == 0 || max(mu_bounds_age_this) == max(mu_bounds_age)) {
-        mu_colnum <- c(mu_colnum, max(grep("*\\.clock\\.rate.epoch\\d{1,3}$", colnames(log_dat))))
+      
+      if (length(mu_bounds_age_this) > 0) {
+        mu_colnum <- grep("*\\.clock\\.rate.epoch\\d{1,3}$", colnames(log_dat))[match(mu_bounds_age_this, mu_bounds_age)]
+        if (i == Q_epoch_num && max(mu_bounds_age_this) == max(mu_bounds_age)) {
+          mu_colnum <- c(mu_colnum, max(grep("*\\.clock\\.rate.epoch\\d{1,}$", colnames(log_dat))))
+        }
+      } else {
+        mu_colnum <- max(grep("*\\.clock\\.rate.epoch\\d{1,}$", colnames(log_dat)))
       }
     }
     
-    mu_colnum_all <- grep("*\\.clock\\.rate.epoch\\d{1,3}$|*\\.clock\\.rate$", colnames(log_dat))
+    mu_colnum_all <- grep("*\\.clock\\.rate.epoch\\d{1,}$|*\\.clock\\.rate$", colnames(log_dat))
     mu_idx <- match(mu_colnum, mu_colnum_all)
     mu_epoch_num_this <- length(mu_idx)
     overall_dispersal_rate_all <- log_dat[, mu_colnum, drop = F]
     
     # calculate qij matrices
     qij_mat_all <- vector("list", log_nrow)
+    qijori_mat_all <- vector("list", log_nrow)
     qijabs_mat_all <- vector("list", mu_epoch_num_this)
     mu_all <- vector("list", mu_epoch_num_this)
 
@@ -439,13 +495,20 @@ get_BF_counts <- function(log_path, burnin = 0) {
         qij_mat_ori <- qij_mat_ori * indicator_mat_all[[l]]
       }
       
-      # beast way of rescaling
-      mu <- sum(apply(qij_mat_ori, 1, sum) / nrow(qij_mat_ori))
-      qij_mat_ori <- qij_mat_ori / mu
+      qijori_mat_all[[l]] <- qij_mat_ori
+      diag(qijori_mat_all[[l]]) <- -apply(qij_mat_ori, 1, sum)
+      
+      if (symmetric_rescaled && (!matrix_sym)) {
+        # beast way of rescaling
+        pi_uniform <- 1 / K
+        mu <- sum(apply(qij_mat_ori, 1, sum) * pi_uniform)
+        qij_mat_ori <- qij_mat_ori / mu
+      }
 
       for (j in 1:mu_epoch_num_this) {
         qijabs_mat <- qij_mat_ori * overall_dispersal_rate_all[l, j]
         diag(qijabs_mat) <- -apply(qijabs_mat, 1, sum)
+        qijabs_mat_all[[j]][[l]] <- qijabs_mat
         
         # correct way of rescaling
         if (j == 1) {
@@ -466,9 +529,107 @@ get_BF_counts <- function(log_path, burnin = 0) {
           }
         }
         
-        qijabs_mat_all[[j]][[l]] <- qijabs_mat
-        mu_all[[j]][l] <- mu
+        if (symmetric_rescaled && (!matrix_sym)) {
+          mu_all[[j]][l] <- mu
+        } else {
+          mu_all[[j]][l] <- overall_dispersal_rate_all[l, j]
+        }
       }
+    }
+    
+    # generate summaries
+    qijabs_mat_mean <- Reduce("+", lapply(qijabs_mat_all, function(x) Reduce("+", x) / log_nrow)) / mu_epoch_num_this
+    diag(qijabs_mat_mean) <- 0
+    diag(qijabs_mat_mean) <- -apply(qijabs_mat_mean, 1, sum)
+    
+    qijabs_mat_all_epochaveraged <- lapply(1:log_nrow, function(l) Reduce("+", lapply(1:mu_epoch_num_this, function(j) qijabs_mat_all[[j]][[l]])) / mu_epoch_num_this)
+    qijabs_mat_median <- matrix(0, nrow = K, ncol = K)
+    for (k in 1:K) {
+      for (l in 1:K) {
+        qijabs_mat_median[k, l] <- median(vapply(qijabs_mat_all_epochaveraged, function(x) x[k, l], FUN.VALUE = numeric(1L)))
+      }
+    }
+    diag(qijabs_mat_median) <- 0
+    diag(qijabs_mat_median) <- -apply(qijabs_mat_median, 1, sum)
+    
+    row_exc <- logical(log_nrow)
+    for (l in 1:log_nrow) {
+      mu_this <- sapply(mu_all, "[[", l)
+      if (any(!is.finite(qij_mat_all[[l]])) || any(!is.finite(mu_this))) {
+        row_exc[l] <- T
+      }
+    }
+    if (any(row_exc)) {
+      qij_mat_all_finite <- qij_mat_all[which(!row_exc)]
+      mu_all_finite <- lapply(mu_all, function(x) x[which(!row_exc)])
+    } else {
+      qij_mat_all_finite <- qij_mat_all
+      mu_all_finite <- mu_all
+    }
+    numeric_problem_genidx <- which(row_exc)
+    
+    mu_mean <- sapply(mu_all_finite, mean)
+    qij_mat_mean <- Reduce("+", qij_mat_all_finite) / length(qij_mat_all_finite)
+    diag(qij_mat_mean) <- 0
+    diag(qij_mat_mean) <- -apply(qij_mat_mean, 1, sum)
+    
+    mu_mean_from_qij_mat_mean_rescaled <- NULL
+    qij_mat_mean_rescaled <- NULL
+    stat_freq <- tryCatch(get_stationary_freq(qij_mat_mean), error = function(e) {})
+    if (!is.null(stat_freq)) {
+      mu <- -sum(stat_freq * diag(qij_mat_mean))
+      qij_mat_mean_rescaled <- qij_mat_mean / mu
+      mu_mean_from_qij_mat_mean_rescaled <- mu * mean(mu_mean)
+    }
+    
+    mu_median <- sapply(mu_all_finite, median)
+    qij_mat_median <- matrix(0, nrow = K, ncol = K)
+    for (k in 1:K) {
+      for (l in 1:K) {
+        qij_mat_median[k, l] <- median(vapply(qij_mat_all_finite, function(x) x[k, l], FUN.VALUE = numeric(1L)))
+      }
+    }
+    diag(qij_mat_median) <- 0
+    diag(qij_mat_median) <- -apply(qij_mat_median, 1, sum)
+    
+    mu_median_from_qij_mat_median_rescaled <- NULL
+    qij_mat_median_rescaled <- NULL
+    stat_freq <- tryCatch(get_stationary_freq(qij_mat_median), error = function(e) {})
+    if (!is.null(stat_freq)) {
+      mu <- -sum(stat_freq * diag(qij_mat_median))
+      qij_mat_median_rescaled <- qij_mat_median / mu
+      mu_median_from_qij_mat_median_rescaled <- mu * mean(mu_median)
+    }
+    
+    qijori_mat_mean <- Reduce("+", qijori_mat_all) / log_nrow
+    diag(qijori_mat_mean) <- 0
+    diag(qijori_mat_mean) <- -apply(qijori_mat_mean, 1, sum)
+    
+    mu_mean_from_qijori_mat_mean_rescaled <- NULL
+    qijori_mat_mean_rescaled <- NULL
+    stat_freq <- tryCatch(get_stationary_freq(qijori_mat_mean), error = function(e) {})
+    if (!is.null(stat_freq)) {
+      mu <- -sum(stat_freq * diag(qijori_mat_mean))
+      qijori_mat_mean_rescaled <- qijori_mat_mean / mu
+      mu_mean_from_qijori_mat_mean_rescaled <- mu * mean(sapply(mu_all, mean))
+    }
+    
+    qijori_mat_median <- matrix(0, nrow = K, ncol = K)
+    for (k in 1:K) {
+      for (l in 1:K) {
+        qijori_mat_median[k, l] <- median(vapply(qijori_mat_all, function(x) x[k, l], FUN.VALUE = numeric(1L)))
+      }
+    }
+    diag(qijori_mat_median) <- 0
+    diag(qijori_mat_median) <- -apply(qijori_mat_median, 1, sum)
+    
+    mu_median_from_qijori_mat_median_rescaled <- NULL
+    qijori_mat_median_rescaled <- NULL
+    stat_freq <- tryCatch(get_stationary_freq(qijori_mat_median), error = function(e) {})
+    if (!is.null(stat_freq)) {
+      mu <- -sum(stat_freq * diag(qijori_mat_median))
+      qijori_mat_median_rescaled <- qijori_mat_median / mu
+      mu_median_from_qijori_mat_median_rescaled <- mu * mean(sapply(mu_all, median))
     }
     
     # when there is only one interval for the average rate, then simpify the data structures
@@ -479,29 +640,19 @@ get_BF_counts <- function(log_path, burnin = 0) {
     }
     
     # generated the list containing all geographic model parameter summaries
-    if (is.null(counts_mean_mat) && is.null(indicator_mat_all)) {
-      BFs_counts_epoch[[i]] <- list(state.names = state.names, state.num = state.num, symmetry = as.logical(indicators_sym),
-                                    overall_dispersal_rate_all = overall_dispersal_rate_all, rate_mat_all = rate_mat_all,
-                                    qijabs_mat_all = qijabs_mat_all, qij_mat_all = qij_mat_all, mu_all = mu_all)
-    } else if (is.null(counts_mean_mat)) {
-      BFs_counts_epoch[[i]] <- list(state.names = state.names, state.num = state.num, symmetry = as.logical(indicators_sym),
-                                    overall_dispersal_rate_all = overall_dispersal_rate_all, rate_mat_all = rate_mat_all,
-                                    indicator_mat_all = indicator_mat_all, posterior_mat = posterior_mat, analytical_prior = analytical_prior, BF_mat = BF_mat,
-                                    qijabs_mat_all = qijabs_mat_all, qij_mat_all = qij_mat_all, mu_all = mu_all)
-    } else if (is.null(indicator_mat_all)) {
-      BFs_counts_epoch[[i]] <- list(state.names = state.names, state.num = state.num, symmetry = as.logical(indicators_sym),
-                                    overall_dispersal_rate_all = overall_dispersal_rate_all, rate_mat_all = rate_mat_all,
-                                    counts_mean_mat = counts_mean_mat, counts_HPD_lower_mat = counts_HPD_lower_mat, 
-                                    counts_HPD_upper_mat = counts_HPD_upper_mat, counts_all = counts_all,
-                                    qijabs_mat_all = qijabs_mat_all, qij_mat_all = qij_mat_all, mu_all = mu_all)
-    } else {
-      BFs_counts_epoch[[i]] <- list(state.names = state.names, state.num = state.num, symmetry = as.logical(indicators_sym),
-                                    overall_dispersal_rate_all = overall_dispersal_rate_all, rate_mat_all = rate_mat_all,
-                                    counts_mean_mat = counts_mean_mat, counts_HPD_lower_mat = counts_HPD_lower_mat, 
-                                    counts_HPD_upper_mat = counts_HPD_upper_mat, counts_all = counts_all,
-                                    indicator_mat_all = indicator_mat_all, posterior_mat = posterior_mat, analytical_prior = analytical_prior, BF_mat = BF_mat,
-                                    qijabs_mat_all = qijabs_mat_all, qij_mat_all = qij_mat_all, mu_all = mu_all)
-    }
+    BFs_counts_epoch[[i]] <- list(state.names = state.names, state.num = state.num, symmetry = matrix_sym, 
+                                  counts_mean_mat = counts_mean_mat, counts_HPD_lower_mat = counts_HPD_lower_mat, 
+                                  counts_HPD_upper_mat = counts_HPD_upper_mat, counts_mat_all = counts_mat_all,
+                                  overall_dispersal_rate_all = overall_dispersal_rate_all, rates_symmetry = rates_sym, rate_mat_all = rate_mat_all,
+                                  indicators_symmetry = indicators_sym, indicator_mat_all = indicator_mat_all, posterior_mat = posterior_mat, analytical_prior = analytical_prior, BF_mat = BF_mat,
+                                  qijabs_mat_all = qijabs_mat_all, qij_mat_all = qij_mat_all, qijori_mat_all = qijori_mat_all, mu_all = mu_all, numeric_problem_genidx = numeric_problem_genidx, 
+                                  qijabs_mat_mean = qijabs_mat_mean, mu_mean = mu_mean, qij_mat_mean = qij_mat_mean, 
+                                  qij_mat_mean_rescaled = qij_mat_mean_rescaled, mu_mean_from_qij_mat_mean_rescaled = mu_mean_from_qij_mat_mean_rescaled, 
+                                  qijori_mat_mean_rescaled = qijori_mat_mean_rescaled, mu_mean_from_qijori_mat_mean_rescaled = mu_mean_from_qijori_mat_mean_rescaled, 
+                                  qijabs_mat_median = qijabs_mat_median, mu_median = mu_median, qij_mat_median = qij_mat_median, 
+                                  qij_mat_median_rescaled = qij_mat_median_rescaled, mu_median_from_qij_mat_median_rescaled = mu_median_from_qij_mat_median_rescaled,
+                                  qijori_mat_median_rescaled = qijori_mat_median_rescaled, mu_median_from_qijori_mat_median_rescaled = mu_median_from_qijori_mat_median_rescaled,
+                                  root_freqs_mat = root_freqs_mat, root_freqs_mean = root_freqs_mean, root_freqs_median = root_freqs_median)
   }
   
   # when there is only one interval for the Q matrix, then simpify the data structures

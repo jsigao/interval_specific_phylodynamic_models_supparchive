@@ -108,9 +108,23 @@ histories_sim <- function(trees, Qs, Q_ages = NULL, root_freqs = NULL, states, n
 #' @param sample_size number of full histories to simulate: if not provided, then it will either be set to 1000 (when \code{conditional} is true or 
 #' when \code{numstates_conditioned} is true and the number of states of the discrete character is greater than 10) or 2500 otherwise
 #' @param histories_exist_path the path to the histories rds file that has been generated: if provided then this function will append the newly simulated histories to the existing ones
+#' @param true_value_type what types of parameter value used to perform the simulation.
+#' The default option ("sample") is to simulate by randomly drawing from the joint posterior distribution, which should be used when perform posterior predictive simulation. 
+#' The other options allow simulation using a single value for each parameter summarized from its marginal posterior distribution (e.g., mean or median).
+#' Choosing one of the last two options ("mean_sigBF" and "median_sigBF") means that the true value of a relative rate in the Q matrix will be set to zero
+#' if its corresponding transition is not inferred to be supported, which is only relevant when the indicator variable is part of the model.
+#' @param symmetric_rescaled whether the rescaling was done assuming the Q matrix is symmetric (original implementation in BEAST so it's the default here)
+#' or allowing Q to be asymmetric during the BEAST inference
 #' @return A multiPhylo and multiSimmap object that contains the simulated full histories
 history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L, nrejections_max = 100L, conditional = F, 
-                              folder_path = NULL, file_paths = NULL, sample_size = NULL, histories_exist_path = NULL) {
+                              folder_path = NULL, file_paths = NULL, sample_size = NULL, histories_exist_path = NULL, true_value_type = "sample", symmetric_rescaled = T) {
+  
+  # sanity checks
+  if (!true_value_type %in% c("sample", "mean", "median", "mean_sigBF", "median_sigBF")) {
+    stop("the specified type of true value is not implemented")
+  } else if (conditional && true_value_type != "sample") {
+    stop("stochastic mapping can only be done by sampling from the posterior")
+  }
   
   cat(file_path, sep = "\n")
   
@@ -119,7 +133,7 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
   #####################################
   # read in discrete trait information
   xml_path <- grep(gsub("_combined.*\\.log$|\\.log$", "", basename(file_path)), 
-                   grep("MLE", list.files(dirname(file_path), recursive = T, full.names = T, pattern = "*.xml$"), value = T, invert = T), value = T)
+                   grep("MLE|powerposterior", list.files(dirname(file_path), recursive = T, full.names = T, pattern = "*.xml$"), value = T, invert = T), value = T)
   if (length(xml_path) == 0) {
     stop("cannot find xml")
   } else if (length(xml_path) > 1 && length(unique(gsub("_run(.*?)\\.xml$", "", basename(xml_path)))) != 1) {
@@ -143,12 +157,18 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
   if (!is.null(histories_exist_path)) {
     histories_exist <- readRDS(histories_exist_path)
     if (!is.null(file_paths)) {
-      histories_exist <- histories_exist[[match(file_path, file_paths)]]
-    } else {
-      histories_exist <- histories_exist[[1]]
+      histories_exist <- histories_exist[match(file_path, file_paths), ]
+    } else if (nrow(histories_exist) > 1) {
+      stop("cannot decide which row of the simulated dataframe to append")
     }
     
-    sample_indices_exist <- as.integer(names(histories_exist))
+    hist_colname <- ifelse(numstates_conditioned, "history_all_numstatesconditioned", "history_all_numstatesunconditioned")
+    if (hist_colname %in% colnames(histories_exist)) {
+      histories_exist <- histories_exist[, hist_colname][[1]]
+      sample_indices_exist <- as.integer(names(histories_exist))
+    } else {
+      histories_exist_path <- NULL
+    }
   }
   
   # deciding how many samples to simulate
@@ -177,7 +197,7 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
   # one other variation to this combinatorics is that if we are to perform stochastic mapping (instead of posterior-prective simulation), 
   # no matter which of the above three scenarios was applicable, we will treat it as scenario 3 as we need to know the sampled node states 
   # (which is likely to only have been logged in the tree file)
-  if (conditional || (!tree_fixed && length(currenttree_colnum) == 0 && file.exists(tree_path))) { # scenario 3
+  if (conditional || (!tree_fixed && length(currenttree_colnum) == 0 && file.exists(tree_path) && true_value_type == "sample")) { # scenario 3
     
     tree_gens_combined <- as.integer(gsub("STATE_", "", system(paste("grep 'tree STATE_'", tree_path, "| cut -f2 -d' '"), intern = T)))
     if (identical(tree_gens_combined, log_dat[, 1])) { # tree file and log file were sampled at the same frequency
@@ -199,7 +219,7 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
       }
       
       if (sample_size < length(sample_indices)) {
-        sample_indices <- sample(sample_indices, size = sample_size)
+        sample_indices <- sort(sample(sample_indices, size = sample_size))
       } else {
         sample_size <- length(sample_indices)
       }
@@ -358,7 +378,7 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
       }
       
       if (sample_size < length(sample_indices)) {
-        sample_indices <- sample(sample_indices, size = sample_size)
+        sample_indices <- sort(sample(sample_indices, size = sample_size))
       } else {
         sample_size <- length(sample_indices)
       }
@@ -396,53 +416,61 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
   } else { # scenarios 1 or 2
     
     # subsample log file according to the specified number of simulations
-    sample_indices <- 1:nrow(log_dat)
-    if (!is.null(sample_indices_exist)) {
-      if (identical(sample_indices_exist, sample_indices)) {
-        return(histories_exist)
-      } else if (length(sample_indices_exist) == length(sample_indices)) {
-        stop ("number of histories existed match the number of histories that needs to be processed, but history indices don't match.\n")
+    if (true_value_type == "sample") {
+      sample_indices <- 1:nrow(log_dat)
+      if (!is.null(sample_indices_exist)) {
+        if (identical(sample_indices_exist, sample_indices)) {
+          return(histories_exist)
+        } else if (length(sample_indices_exist) == length(sample_indices)) {
+          stop ("number of histories existed match the number of histories that needs to be processed, but history indices don't match.\n")
+        }
+        rm(histories_exist)
+        gc()
+        gc()
+        
+        sample_indices <- sample_indices[!sample_indices %in% sample_indices_exist]
+        cat(paste0(length(sample_indices_exist), " histories simulated, ", length(sample_indices), " histories to simulate.\n"))
       }
-      rm(histories_exist)
-      gc()
-      gc()
       
-      sample_indices <- sample_indices[!sample_indices %in% sample_indices_exist]
-      cat(paste0(length(sample_indices_exist), " histories simulated, ", length(sample_indices), " histories to simulate.\n"))
-    }
-    
-    if (sample_size < length(sample_indices)) {
-      sample_indices <- sample(sample_indices, size = sample_size)
-    } else {
-      sample_size <- length(sample_indices)
-    }
-    log_dat <- log_dat[sample_indices, ]
-    
-    if (length(currenttree_colnum) == 1) { # scenario 2
-      # read in the tree file that contains the distribution of trees we sampled over in the geographic analysis
-      # todo: file finding needs to be more robust
-      tree_path <- list.files(paste0(unlist(strsplit(file_path, "/phylogeography"))[1], "/phylogeny"), recursive = T, full.names = T, pattern = "*sample.trees")
-      if (length(tree_path) != 1) {
-        stop("cannot find tree")
-      }
-      trees <- read.nexus(tree_path)
-      tree_indices <- as.integer(log_dat[, currenttree_colnum] + 1L) # as of the current implementation in BEAST the tree indices start from zero
-      
-      trees <- trees[unique(tree_indices)] # only store the unique trees to save space
-      tree_indices <- match(tree_indices, unique(tree_indices))
-    } else if (tree_fixed) { # scenario 1
-      
-      if (file.exists(tree_path)) {
-        trees <- read.nexus(tree_path)
-        trees <- trees[1]
-        tree_indices <- rep(1L, nrow(log_dat))
+      if (sample_size < length(sample_indices)) {
+        sample_indices <- sort(sample(sample_indices, size = sample_size))
       } else {
-        # todo: get the mcc tree path
-        stop("cannot find tree")
+        sample_size <- length(sample_indices)
       }
+      log_dat <- log_dat[sample_indices, ]
       
+      if (length(currenttree_colnum) == 1) { # scenario 2
+        # read in the tree file that contains the distribution of trees we sampled over in the geographic analysis
+        # todo: file finding needs to be more robust
+        tree_path <- list.files(paste0(unlist(strsplit(file_path, "/phylogeography"))[1], "/phylogeny"), recursive = T, full.names = T, pattern = "*sample.trees")
+        if (length(tree_path) != 1) {
+          stop("cannot find tree")
+        }
+        trees <- read.nexus(tree_path)
+        tree_indices <- as.integer(log_dat[, currenttree_colnum] + 1L) # as of the current implementation in BEAST the tree indices start from zero
+        
+        trees <- trees[unique(tree_indices)] # only store the unique trees to save space
+        tree_indices <- match(tree_indices, unique(tree_indices))
+      } else if (tree_fixed) { # scenario 1
+        
+        if (file.exists(tree_path)) {
+          trees <- read.nexus(tree_path)
+          trees <- trees[1]
+          tree_indices <- rep(1L, nrow(log_dat))
+        } else {
+          # todo: get the mcc tree path
+          stop("cannot find tree")
+        }
+        
+      } else {
+        stop("don't know what to do")
+      }
+    } else if (tree_fixed && file.exists(tree_path)) {
+      trees <- read.nexus(tree_path)
+      trees <- trees[1]
+      tree_indices <- rep(1L, sample_size)
     } else {
-      stop("don't know what to do")
+      stop("cannot find tree")
     }
   }
   gc()
@@ -529,9 +557,11 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
   
   # set default to symmetric model
   # determine whether it's symmetrical model or asymmetrical model
+  matrix_sym <- T
   rates_sym <- T
   if (choose(K, 2) * 2 == length(rates_colnums) / Q_epoch_num) {
     rates_sym <- F
+    matrix_sym <- F
   } else if (choose(K, 2) != length(rates_colnums) / Q_epoch_num) {
     stop("The number of states extracted from the xml file does not match its counterpart computed from the log file.\n")
   }
@@ -573,6 +603,7 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
     indicators_sym <- T
     if (choose(K, 2) * 2 == length(indicators_colnums) / Q_epoch_num) {
       indicators_sym <- F
+      matrix_sym <- F
     } else if (choose(K, 2) != length(indicators_colnums) / Q_epoch_num) {
       stop("The number of states extracted from the xml file does not match its counterpart computed from the log file.\n")
     }
@@ -600,6 +631,25 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
       
       indicators_startid <- indicators_startid + choose(K, 2) * (2 - indicators_sym)
     }
+    
+    if (true_value_type %in% c("mean_sigBF", "median_sigBF")) {
+      BF_mat_all <- vector("list", Q_epoch_num)
+      for (i in 1:Q_epoch_num) {
+        pois_str <- grep("<poissonPrior", x, value = T)[i] # here we assumes each epoch has its independent prior on mu
+        if (length(pois_str) == 0) {
+          lambda <- choose(K, 2) * 0.5 * (2 - indicators_sym)
+        } else {
+          lambda <- sum(as.numeric(gsub("mean", "", unlist(strsplit(gsub(" |<poissonPrior|\t|=|\"|>", "", pois_str), split = "offset")))))
+        }
+        analytical_prior <- lambda / (choose(K, 2) * (2 - indicators_sym))
+        
+        posterior_mat <- Reduce("+", lapply(indicator_mat_all, function(x) x[[i]])) / log_nrow
+        BF_mat_all[[i]] <- (posterior_mat / (1 - posterior_mat)) / (analytical_prior / (1 - analytical_prior))
+      }
+    }
+    
+  } else if (true_value_type %in% c("mean_sigBF", "median_sigBF")) {
+    stop("cannot simulate by assuming the routes with significant Bayes factor exist as no indicator variable was estimated.")
   }
   
   # fill out each Q matrix
@@ -612,17 +662,18 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
     }
   }
   
-  # rescale each Q matrix
   for (i in 1:Q_epoch_num) {
     for (l in 1:log_nrow) {
       diag(Q_all[[l]][[i]]) <- -apply(Q_all[[l]][[i]], 1, sum)
       
-      # note here the Q matrix would be correctly rescaled if it's symmetric
-      # but would be incorret if it's asymmetric (as pi won't be flat)
-      # however, this is how beast has been rescaling internally so far, so we need to follow it here
-      pi <- 1 / K
-      mu <- -sum(diag(Q_all[[l]][[i]]) * pi)
-      Q_all[[l]][[i]] <- Q_all[[l]][[i]] / mu
+      if (symmetric_rescaled && (!matrix_sym)) { # rescale each Q matrix
+        # note that in BEAST the Q matrix would have been correctly rescaled if it's symmetric
+        # but would be incorrectly rescaled (i.e., mean is not one) if it's asymmetric (as pi won't be uniform)
+        # so we need to follow this procedure here to get the matrix that was actually used during the inference
+        pi <- 1 / K
+        mu <- -sum(diag(Q_all[[l]][[i]]) * pi)
+        Q_all[[l]][[i]] <- Q_all[[l]][[i]] / mu
+      }
       
       dimnames(Q_all[[l]][[i]]) <- list(states, states)
     }
@@ -640,16 +691,10 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
     stop("number of columns for mu should be identical to the number of intervals specified in the XML script")
   }
   averagerate_all <- log_dat[, mu_colnums, drop = F]
-  
-  # fill out the vector of unrescaled Qs (where each element corresponds to an interval defined by either Q or mu)
-  combined_Q_all <- vector("list", log_nrow)
-  for (l in 1:log_nrow) {
-    combined_Q_all[[l]] <- vector("list", epoch_num)
-  }
-  for (i in 1:epoch_num) {
-    for (l in 1:log_nrow) {
-      combined_Q_all[[l]][[i]] <- Q_all[[l]][[combined_Qorders[i]]] * averagerate_all[l, combined_muorders[i]]
-    }
+
+  param_indices <- 1:sample_size
+  if (true_value_type != "sample") {
+    param_indices <- rep(1L, sample_size)
   }
   
   # using the estimated root freq vector as the prior probability at the root
@@ -661,6 +706,66 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
     colnames(root_freqs_mat) <- states
   } else if (length(rootfreq_colnum) > 0 && length(rootfreq_colnum) != K) {
     stop ("cannot correctly identify root freqs.\n")
+  }
+  
+  if (true_value_type != "sample") {
+    if (!is.null(root_freqs_mat)) {
+      root_freqs_mat_tmp <- root_freqs_mat[1, , drop = F]
+      if (true_value_type %in% c("mean", "mean_sigBF")) {
+        root_freqs_mat_tmp[1, ] <- apply(root_freqs_mat, 2, mean)
+      } else if (true_value_type %in% c("median", "median_sigBF")) {
+        root_freqs_mat_tmp[1, ] <- apply(root_freqs_mat, 2, median)
+      }
+      root_freqs_mat_tmp[1, ] <- root_freqs_mat_tmp[1, ] / sum(root_freqs_mat_tmp[1, ])
+      root_freqs_mat <- root_freqs_mat_tmp
+    }
+  }
+  
+  if (true_value_type == "sample") {
+    # fill out the vector of unrescaled Qs (where each element corresponds to an interval defined by either Q or mu)
+    combined_Q_all <- vector("list", log_nrow)
+    for (l in 1:log_nrow) {
+      combined_Q_all[[l]] <- vector("list", epoch_num)
+    }
+    for (i in 1:epoch_num) {
+      for (l in 1:log_nrow) {
+        combined_Q_all[[l]][[i]] <- Q_all[[l]][[combined_Qorders[i]]] * averagerate_all[l, combined_muorders[i]]
+      }
+    }
+  } else {
+    combined_Q_all <- vector("list", 1L)
+    combined_Q_all[[1]] <- vector("list", epoch_num)
+    
+    if (true_value_type %in% c("mean", "mean_sigBF")) {
+      for (i in 1:epoch_num) {
+        averagerate <- mean(averagerate_all[, combined_muorders[i]])
+        Q_mat <- Reduce("+", lapply(Q_all, function(x) x[[combined_Qorders[i]]])) / log_nrow
+        combined_Q_all[[1]][[i]] <- Q_mat * averagerate
+      }
+    } else if (true_value_type %in% c("median", "median_sigBF")) {
+      for (i in 1:epoch_num) {
+        averagerate <- median(averagerate_all[, combined_muorders[i]])
+        Q_mat <- matrix(0, nrow = K, ncol = K)
+        for (k in 1:K) {
+          for (l in 1:K) {
+            Q_mat[k, l] <- median(vapply(Q_all, function(x) x[[combined_Qorders[i]]][k, l], FUN.VALUE = numeric(1L)))
+          }
+        }
+        combined_Q_all[[1]][[i]] <- Q_mat * averagerate
+      }
+    }
+    
+    if (true_value_type %in% c("mean_sigBF", "median_sigBF")) {
+      for (i in 1:epoch_num) {
+        combined_Q_all[[1]][[i]][log(BF_mat_all[[i]]) * 2 <= 2] <- 0
+      }
+    }
+    
+    # recompute the diagonal elements as the sum of off-diagonal elements of the associated row
+    for (i in 1:epoch_num) {
+      diag(combined_Q_all[[1]][[i]]) <- 0
+      diag(combined_Q_all[[1]][[i]]) <- -apply(combined_Q_all[[1]][[i]], 1, sum)
+    }
   }
   
   # take care of memory issue
@@ -676,7 +781,7 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
   if (ncores == 1 || sample_size < 100L) { # single core
     histories <- vector("list", sample_size)
     for (l in 1:sample_size) {
-      histories[[l]] <- history_sim(tree = trees[[tree_indices[l]]], Q = combined_Q_all[[l]], Q_ages = combined_ages, root_freq = unlist(root_freqs_mat[l, ]), states = states,
+      histories[[l]] <- history_sim(tree = trees[[tree_indices[l]]], Q = combined_Q_all[[param_indices[l]]], Q_ages = combined_ages, root_freq = unlist(root_freqs_mat[param_indices[l], ]), states = states,
                                     numstates_conditioned = numstates_conditioned, nrejections_max = nrejections_max, conditional = conditional)
       if (l %% 10 == 0) {
         cat(paste0(l, " histories has been simulated.\n"))
@@ -703,7 +808,7 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
     
     # parse the parameters to simulate a number of histories
     histories_all <- pblapply(his_indices, function(his_idx) {
-      histories_sim(trees = trees[tree_indices[his_idx]], Qs = combined_Q_all[his_idx], Q_ages = combined_ages, root_freqs = root_freqs_mat[his_idx, ], states = states,
+      histories_sim(trees = trees[tree_indices[his_idx]], Qs = combined_Q_all[param_indices[his_idx]], Q_ages = combined_ages, root_freqs = root_freqs_mat[param_indices[his_idx], ], states = states,
                     numstates_conditioned = numstates_conditioned, nrejections_max = nrejections_max, indices = his_idx, conditional = conditional)
     }, cl = ncores)
     
@@ -713,16 +818,18 @@ history_simulator <- function(file_path, numstates_conditioned = T, ncores = 1L,
   rm(combined_Q_all)
   gc()
   
-  names(histories) <- sample_indices
+  if (true_value_type == "sample") names(histories) <- sample_indices
   
   # combine existing histories with the newly generated ones
   if (!is.null(histories_exist_path)) {
     histories_exist <- readRDS(histories_exist_path)
     if (!is.null(file_paths)) {
-      histories_exist <- histories_exist[[match(file_path, file_paths)]]
-    } else {
-      histories_exist <- histories_exist[[1]]
+      histories_exist <- histories_exist[match(file_path, file_paths), ]
+    } else if (nrow(histories_exist) > 1) {
+      stop("cannot decide which row of the simulated dataframe to append")
     }
+    hist_colname <- ifelse(numstates_conditioned, "history_all_numstatesconditioned", "history_all_numstatesunconditioned")
+    histories_exist <- histories_exist[, hist_colname][[1]]
     
     histories <- c(histories, histories_exist)
     histories <- histories[order(as.integer(names(histories)))]

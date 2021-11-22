@@ -1,4 +1,3 @@
-
 library(expm)
 
 #' Simulate history of discrete-character changes over a branch (which may comprise one or more pieces delimited by time interval bounds) 

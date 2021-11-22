@@ -21,14 +21,14 @@ readBeast <- function(file_path = NULL, tree_text = NULL) {
   }
   
   # only retain the relevant tree text
-  start_linenum <- grep("^Begin trees;$", x_raw)
+  start_linenum <- grep("^begin trees;$", tolower(x_raw))
   if (length(start_linenum) != 1) {
-    stop("something wrong")
+    stop("cannot find the tree starting line")
   }
-  end_linenum <- grep("^End;$", x_raw)
+  end_linenum <- grep("^end;$", tolower(x_raw))
   end_linenum <- min(end_linenum[end_linenum > start_linenum])
   if (length(end_linenum) != 1) {
-    stop("something wrong")
+    stop("cannot find the tree ending line")
   }
   x_raw <- x_raw[start_linenum:end_linenum]
   
@@ -61,7 +61,7 @@ readBeast <- function(file_path = NULL, tree_text = NULL) {
   
   if (!translate) { # Trees have names in them
     for (i in 1:length(my.data)) {
-      my.data[[i]]$tip.label <- gsub("\'","", my.data[[i]]$tip.label)
+      my.data[[i]]$tip.label <- gsub("\'", "", my.data[[i]]$tip.label)
     }
     
     # Trees use numbers not names, we will use taxon name block of format "number name" to 
@@ -107,26 +107,35 @@ parseBeastNewick <- function(string) {
   string <- gsub("++++", "++", string, fixed = T)
   tree.vec <- strsplit(string, "++", fixed = T)[[1]][-1]
   
-  n.tips <- length(grep("\\(", tree.vec)) + 1 # assuming at least two tips
-  n.nodes <- 2 * n.tips - 1 # assuming fully bifurcating rooted tree
-  n.edges <- 2 * n.tips - 2
+  n.tips <- length(grep("\\(", tree.vec)) + 1L # assuming at least two tips
+  n.nodes <- as.integer(2 * n.tips - 1) # assuming fully bifurcating rooted tree
+  n.edges <- as.integer(2 * n.tips - 2)
   edges <- matrix(0L, ncol = 2, nrow = n.edges, byrow = T)
 
   max.node <- n.tips
   at.node <- n.tips
-  tip.node <- 0L # assumming fully bifurcating
+  tip.node <- 0L # assuming fully bifurcating
+  edges_rownum <- 1L
   
   tip.names <- character(n.tips)
   node_bls <- numeric(n.nodes)
   node_annotations <- character(n.nodes)
   
-  edges_rownum <- 1L
+  # strip out extended newick part
+  newicks <- gsub("\\[(.*?)\\]", "", tree.vec)
+  newickexts <- gsub("]:[&", ",", tree.vec, fixed = T)
+  extnewick_exists <- grepl("\\[&", tree.vec)
+  
+  is_firstvisits <- newicks == "("
+  is_finalvisits <- grepl("\\)", newicks)
+  has_subtendingbranchs <- grepl(":", newicks)
+  
   for (i in 1:length(tree.vec)) {
     
-    # strip out extended newick part
-    newick <- gsub("\\[(.*?)\\]", "", tree.vec[i])
+    newick <- newicks[i]
+    newickext <- newickexts[i]
     
-    if (newick == "(") { # adding a new node we've never seen before, guaranteed to be internal
+    if (is_firstvisits[i]) { # adding a new node we've never seen before, guaranteed to be internal
       
       if (at.node != n.tips) {
         edges[edges_rownum, ] <- c(at.node, max.node + 1L)
@@ -135,13 +144,13 @@ parseBeastNewick <- function(string) {
       max.node <- max.node + 1L
       at.node <- max.node
 
-    } else if (grepl("\\)", newick)) { # we're going back through a previously visited internal node
+    } else if (is_finalvisits[i]) { # we're going back through a previously visited internal node
       
       old.node <- at.node
       
-      if (grepl(":", newick)) { # with a subtending branch (i.e., non-root node)
+      if (has_subtendingbranchs[i]) { # with a subtending branch (i.e., non-root node)
         
-        at.node <- edges[edges[, 2] == at.node, 1] # traverse back one node to their parent
+        at.node <- edges[edges[, 2] == old.node, 1] # traverse back one node to their parent
 
         coloncommasplit <- strsplit(newick, ":|,|;")[[1]][-1]
         node_bls[old.node] <- as.numeric(coloncommasplit[1])
@@ -155,9 +164,8 @@ parseBeastNewick <- function(string) {
           edges[edges_rownum, ] <- c(at.node, tip.node)
           edges_rownum <- edges_rownum + 1L
           
-          if (grepl("\\[&", tree.vec[i])) { # parse node annotation, the extended newick part, if there exists
-            
-            newickext <- gsub("]:[&", ",", tree.vec[i], fixed = T) # when there are multiple extended newick parts
+          if (extnewick_exists[i]) { # parse node annotation, the extended newick part, if there exists
+            # when there are multiple extended newick parts
             newickext <- strsplit(newickext, ",(?![^[]*])", perl = T)[[1]]
 
             # first node in the string is the node we just passed through
@@ -171,8 +179,7 @@ parseBeastNewick <- function(string) {
           
         } else if (length(coloncommasplit) == 1) { # sister to another internal node or is the root
           
-          if (grepl("\\[&", tree.vec[i])) {
-            newickext <- gsub("]:[&", ",", tree.vec[i], fixed = T)
+          if (extnewick_exists[i]) {
             node_annotations[old.node] <- gsub(".*\\[&|\\].*", "", newickext)
           }
         } else {
@@ -180,13 +187,12 @@ parseBeastNewick <- function(string) {
         }
       } else { # root
         node_bls[old.node] <- 0
-        if (grepl("\\[&", tree.vec[i])) {
-          newickext <- gsub("]:[&", ",", tree.vec[i], fixed = T)
+        if (extnewick_exists[i]) {
           node_annotations[old.node] <- gsub(".*\\[&|\\].*", "", newickext)
         }
       }
 
-    } else if (grepl(":", newick)) { # there must be one or two tips descending from the current node
+    } else if (has_subtendingbranchs[i]) { # there must be one or two tips descending from the current node
       
       coloncommasplit <- strsplit(newick, ":|,")[[1]]
       if (!length(coloncommasplit) %in% c(2, 4)) {
@@ -203,8 +209,7 @@ parseBeastNewick <- function(string) {
         edges_rownum <- edges_rownum + 1L
       }
       
-      if (grepl("\\[&", tree.vec[i])) { # associated node info exists
-        newickext <- gsub("]:[&", ",", tree.vec[i], fixed = T)
+      if (extnewick_exists[i]) { # associated node info exists
         newickext <- strsplit(newickext, ",(?![^[]*])", perl = T)[[1]]
         
         for (j in 1:length(newickext)) {
@@ -235,5 +240,3 @@ parseBeastNewick <- function(string) {
   
   return(my.tree)
 }
-
-
