@@ -6,7 +6,7 @@ These materials are located within four directories:
 (3) the [`scripts`](#scripts) directory contains the `R` scripts that we used to curate empirical data and to process the output from our analyses, and; 
 (4) the [`program`](#program) directory contain a modified version of the `BEAST` software package that implements various extensions required to perform some of the phylodynamic analyses in our study.
 Each of these directories is detailed below.
-Note that we also provide this archive as a [Dryad repository](https://datadryad.org/stash/share/qM_lKSgUqZ9jk3yKU5Fo5JurDb4iichKAnkt4PPh6Wg).
+Note that we also provide this archive as a [Dryad repository](https://datadryad.org/stash/share/vTbeDwLq2uSL9rL4NCe_Cocp2bY7BgWTI2tUgoNrLDA).
 
 ## <a name="simulation_study"></a>Simulation Study
 The `simulation_study` directory contains the `BEAST` XML scripts to specify phylodynamic analyses of the empirical dataset that we performed to obtain realistic parameter values for simulating geographic datasets (within the [`generating_simulated_datasets`](#generating_simulated_datasets) subdirectory) and also the scripts for subsequently analyzing those simulated datasets (within the [`analyzing_simulated_datasets`](#analyzing_simulated_datasets) subdirectory).
