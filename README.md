@@ -1,4 +1,4 @@
-# Supplementary Archive for: More Realistic Phylodynamic Models Improve Inference of the Geographic History of Disease Outbreaks
+# Supplementary Archive for: New Interval-Specific Phylodynamic Models Improve Inference of the Geographic History of Disease Outbreaks
 This archive contains the necessary materials to replicate the analyses and reproduce the results of our study.
 These materials are located within four directories: 
 (1) the [`simulation_study`](#simulation_study) directory contains the `BEAST` XML scripts to specify the phylodynamic analyses that we performed to obtain parameter values that we subsequently used to simulate geographic datasets and also the scripts to analyze those simulated datasets; 
