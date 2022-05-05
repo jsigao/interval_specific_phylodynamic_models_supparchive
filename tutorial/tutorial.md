@@ -35,7 +35,7 @@ As an example, we imagine a pathogen dispersal history involving two events (e.g
 To specify this interval-specific model in an XML file, we first need to specify the Q matrices.
 Let's specify an independent asymmetric Q matrix (with BSSVS) for each time interval.
 ```xml
-<generalSubstitutionModel id="geography.model.epoch1">
+<generalSubstitutionModel id="geography.model.epoch1" computeStationary="true">
 	<generalDataType idref="geography.dataType"/>
 	<frequencies>
 		<frequencyModel id="geography.frequencyModel.epoch1" normalize="true">
@@ -53,7 +53,7 @@ Let's specify an independent asymmetric Q matrix (with BSSVS) for each time inte
   </rateIndicator>
 </generalSubstitutionModel>
 
-<generalSubstitutionModel id="geography.model.epoch2">
+<generalSubstitutionModel id="geography.model.epoch2" computeStationary="true">
 	<generalDataType idref="geography.dataType"/>
 	<frequencies>
 		<frequencyModel id="geography.frequencyModel.epoch2" normalize="true">
@@ -71,7 +71,7 @@ Let's specify an independent asymmetric Q matrix (with BSSVS) for each time inte
 	</rateIndicator>
 </generalSubstitutionModel>
 
-<generalSubstitutionModel id="geography.model.epoch3">
+<generalSubstitutionModel id="geography.model.epoch3" computeStationary="true">
 	<generalDataType idref="geography.dataType"/>
 	<frequencies>
 		<frequencyModel id="geography.frequencyModel.epoch3" normalize="true">
