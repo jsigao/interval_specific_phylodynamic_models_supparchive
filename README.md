@@ -1,10 +1,11 @@
-# Supplementary Archive for: New Interval-Specific Phylodynamic Models Improve Inference of the Geographic History of Disease Outbreaks
+# Supplementary Archive for: New Phylogenetic Models Incorporating Interval-Specific Dispersal Dynamics Improve Inference of Disease Spread
 This archive contains the necessary materials to replicate the analyses and reproduce the results of our study.
 These materials are located within four directories: 
 (1) the [`simulation_study`](#simulation_study) directory contains the `BEAST` XML scripts to specify the phylodynamic analyses that we performed to obtain parameter values that we subsequently used to simulate geographic datasets and also the scripts to analyze those simulated datasets; 
 (2) the [`empirical_application`](#empirical_application) directory contains both the SARS-CoV-2 datasets that we use to illustrate our new methods and the XML scripts that specify the phylodynamic analyses of these empirical datasets that we performed using the `BEAST` software package; 
 (3) the [`scripts`](#scripts) directory contains the `R` scripts that we used to curate empirical data and to process the output from our analyses, and; 
 (4) the [`program`](#program) directory contain a modified version of the `BEAST` software package that implements various extensions required to perform some of the phylodynamic analyses in our study.
+(5) the [`tutorial`](#tutorial) directory a tutorial that describes how to specify an interval-specific discrete-geographic phylodynamic model in a `BEAST` XML file.
 Each of these directories is detailed below.
 Note that we also provide this archive as a [Dryad repository](https://datadryad.org/stash/share/vTbeDwLq2uSL9rL4NCe_Cocp2bY7BgWTI2tUgoNrLDA).
 
@@ -145,9 +146,11 @@ The script `scripts/model_assessment/posterior_predictive_summarystatistics.R` c
 
 ## <a name="program"></a>Modified BEAST Program
 We provide an executable for a modified version of the `BEAST` program; our modifications implement various extensions to enable analyses under interval-specific phylodynamic models, including likelihood computation and stochastic mapping.
-Our modifications were made to the source code of [the `master` branch, commit `58c4e71`](https://github.com/beast-dev/beast-mcmc/commit/58c4e7154a8028d9c5095831a15aebdd7f74df3a); the modified source code (from which we compiled the executable used in several of our analyses) is located in [the `master` branch, commit `d1ee6a4`](https://github.com/jsigao/beast-mcmc/commit/d1ee6a495d2f3d24cdb52a85f5d622d449924b67) of a forked `BEAST` source-code repository.
+Our modifications were made to the source code of [the `master` branch, commit `58c4e71`](https://github.com/beast-dev/beast-mcmc/commit/58c4e7154a8028d9c5095831a15aebdd7f74df3a); the modified source code (from which we compiled the executable used in several of our analyses) is located in [the `master` branch, commit `1b17e85`](https://github.com/jsigao/beast-mcmc/commit/1b17e857166046b0a3075fb7d4a5730ee286b379) of a forked `BEAST` source-code repository.
 Briefly, this executable can be run by invoking:
 ```
 java -jar beast.jar -working ./empirical_application/analyses/step2_model_evaluation/marginal_likelihood/4mu4q_exphyper_asymmetric_poissonintermediate_powerposterior_run1.xml
 ```
+
 See [`BEAST` official tutorial website](http://beast.community/index.html) for further details about running `BEAST` analyses using a `Java` executable.
+We provide details about how to specify an interval-specific discrete-geographic phylodynamic model in `BEAST` XML in a hands-on tutorial (available in the `tutorial` subdirectory).

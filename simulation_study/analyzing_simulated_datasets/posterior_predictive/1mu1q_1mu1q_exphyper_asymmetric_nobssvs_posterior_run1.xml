@@ -5131,16 +5131,8 @@
 		</data>
 	</distributionLikelihood>
 
-	<generalSubstitutionModel id="geography.model">
+	<generalSubstitutionModel id="geography.model" computeStationary="true">
 		<generalDataType idref="geography.dataType"/>
-		<frequencies>
-			<frequencyModel id="geography.frequencyModel" normalize="true">
-				<generalDataType idref="geography.dataType"/>
-				<frequencies>
-					<parameter id="geography.frequencies" dimension="3"/>
-				</frequencies>
-			</frequencyModel>
-		</frequencies>
 		<rates>
 			<parameter id="geography.rates" dimension="6" value="1.0"/>
 		</rates>

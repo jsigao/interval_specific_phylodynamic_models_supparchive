@@ -11,7 +11,7 @@ folder: beast
 
 ## Interval-Specific Discrete-Geographic Model Tutorial
 
-This tutorial describes how to specify an interval-specific discrete-geographic model (described in ['Gao et al., 2021'](https://www.medrxiv.org/content/10.1101/2021.12.02.21267221v1)) in a BEAST XML file.
+This tutorial describes how to specify an interval-specific discrete-geographic phylodynamic model (described in ['Gao et al., 2021'](https://www.medrxiv.org/content/10.1101/2021.12.02.21267221v1)) in a BEAST XML file.
 This model extends the ['epoch model'](http://beast.community/epoch_models) (interval-specific relative dispersal rates; Bielejec et al., 2014) and ['time dependent rate model'](http://beast.community/time_dependent_rate_model) (interval-specific average dispersal rate; Membrebe et al., 2019) to allow both the relative and average dispersal rates to vary independently across pre-defined time intervals.
 
 Inferences and simulations under this interval-specific model depend on extensions that came after the latest stable release of BEAST (1.10.4); we provide a third-party BEAST jar file [here](https://github.com/jsigao/interval_specific_phylodynamic_models_supparchive/blob/master/program/beast.jar) that is currently required to use this model.
@@ -37,14 +37,6 @@ Let's specify an independent asymmetric Q matrix (with BSSVS) for each time inte
 ```xml
 <generalSubstitutionModel id="geography.model.epoch1" computeStationary="true">
 	<generalDataType idref="geography.dataType"/>
-	<frequencies>
-		<frequencyModel id="geography.frequencyModel.epoch1" normalize="true">
-			<generalDataType idref="geography.dataType"/>
-			<frequencies>
-				<parameter id="geography.frequencies.epoch1" dimension="23"/>
-			</frequencies>
-		</frequencyModel>
-	</frequencies>
 	<rates>
 		<parameter id="geography.rates.epoch1" dimension="506" value="1.0"/>
 	</rates>
@@ -55,14 +47,6 @@ Let's specify an independent asymmetric Q matrix (with BSSVS) for each time inte
 
 <generalSubstitutionModel id="geography.model.epoch2" computeStationary="true">
 	<generalDataType idref="geography.dataType"/>
-	<frequencies>
-		<frequencyModel id="geography.frequencyModel.epoch2" normalize="true">
-			<generalDataType idref="geography.dataType"/>
-			<frequencies>
-				<parameter id="geography.frequencies.epoch2" dimension="23"/>
-			</frequencies>
-		</frequencyModel>
-	</frequencies>
 	<rates>
 		<parameter id="geography.rates.epoch2" dimension="506" value="1.0"/>
 	</rates>
@@ -73,14 +57,6 @@ Let's specify an independent asymmetric Q matrix (with BSSVS) for each time inte
 
 <generalSubstitutionModel id="geography.model.epoch3" computeStationary="true">
 	<generalDataType idref="geography.dataType"/>
-	<frequencies>
-		<frequencyModel id="geography.frequencyModel.epoch3" normalize="true">
-			<generalDataType idref="geography.dataType"/>
-			<frequencies>
-				<parameter id="geography.frequencies.epoch3" dimension="23"/>
-			</frequencies>
-		</frequencyModel>
-	</frequencies>
 	<rates>
 		<parameter id="geography.rates.epoch3" dimension="506" value="1.0"/>
 	</rates>

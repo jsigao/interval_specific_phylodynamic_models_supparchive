@@ -5147,14 +5147,6 @@
 
 	<generalSubstitutionModel id="geography.model.epoch1" computeStationary="true">
 		<generalDataType idref="geography.dataType"/>
-		<frequencies>
-			<frequencyModel id="geography.frequencyModel.epoch1" normalize="true">
-				<generalDataType idref="geography.dataType"/>
-				<frequencies>
-					<parameter id="geography.frequencies.epoch1" dimension="23"/>
-				</frequencies>
-			</frequencyModel>
-		</frequencies>
 		<rates>
 			<parameter id="geography.rates.epoch1" dimension="506" value="1.0"/>
 		</rates>
@@ -5168,14 +5160,6 @@
 	
 	<generalSubstitutionModel id="geography.model.epoch2" computeStationary="true">
 		<generalDataType idref="geography.dataType"/>
-		<frequencies>
-			<frequencyModel id="geography.frequencyModel.epoch2" normalize="true">
-				<generalDataType idref="geography.dataType"/>
-				<frequencies>
-					<parameter id="geography.frequencies.epoch2" dimension="23"/>
-				</frequencies>
-			</frequencyModel>
-		</frequencies>
 		<rates>
 			<parameter id="geography.rates.epoch2" dimension="506" value="1.0"/>
 		</rates>
@@ -5189,14 +5173,6 @@
 	
 	<generalSubstitutionModel id="geography.model.epoch3" computeStationary="true">
 		<generalDataType idref="geography.dataType"/>
-		<frequencies>
-			<frequencyModel id="geography.frequencyModel.epoch3" normalize="true">
-				<generalDataType idref="geography.dataType"/>
-				<frequencies>
-					<parameter id="geography.frequencies.epoch3" dimension="23"/>
-				</frequencies>
-			</frequencyModel>
-		</frequencies>
 		<rates>
 			<parameter id="geography.rates.epoch3" dimension="506" value="1.0"/>
 		</rates>
