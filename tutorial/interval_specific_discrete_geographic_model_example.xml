@@ -5255,13 +5255,13 @@
 		<posterior id="posterior">
 			<prior id="prior">
 				<exponentialPrior mean="0.1" offset="0.0">
-					<parameter idref="geography.clock.rate.exp.epoch1"/>
+					<parameter idref="geography.clock.rate.epoch1"/>
 				</exponentialPrior>
 				<exponentialPrior mean="0.1" offset="0.0">
-					<parameter idref="geography.clock.rate.exp.epoch2"/>
+					<parameter idref="geography.clock.rate.epoch2"/>
 				</exponentialPrior>
 				<exponentialPrior mean="0.1" offset="0.0">
-					<parameter idref="geography.clock.rate.exp.epoch3"/>
+					<parameter idref="geography.clock.rate.epoch3"/>
 				</exponentialPrior>
 				<poissonPrior mean="253" offset="0">
 					<statistic idref="geography.nonZeroRates.epoch1"/>
